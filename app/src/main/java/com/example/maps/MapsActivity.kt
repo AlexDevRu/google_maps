@@ -2,11 +2,13 @@ package com.example.maps
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
+import android.location.Address
+import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.maps.databinding.ActivityMapsBinding
@@ -17,7 +19,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.maps.model.MarkerOptions
+import java.io.IOException
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -45,6 +48,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         checkLocationPermission()
+    }
+
+    private fun getLocationByKey(query: String) {
+        val geocoder = Geocoder(this)
+        try {
+            val list =  geocoder.getFromLocationName(query, 1)
+            if(list.isNotEmpty()) {
+                val addr = list.first()
+                val marker = LatLng(addr.latitude, addr.longitude)
+                mMap.addMarker(MarkerOptions().position(marker).title(addr.getAddressLine(0)))
+                moveCamera(marker, DEFAULT_ZOOM)
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "getLocationByKey IOException: ${e.message}")
+        }
     }
 
     private fun initMap() {
@@ -142,6 +160,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 mMap.isMyLocationEnabled = true;
                 mMap.uiSettings.isMyLocationButtonEnabled = true;
 
+                initViews()
+
             }
         }
 
@@ -149,6 +169,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         /*val sydney = LatLng(-34.0, 151.0)
         mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))*/
+    }
+
+    private fun initViews() {
+        binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                getLocationByKey(query.orEmpty())
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean = false
+        })
     }
 
     private fun getDeviceLocation() {
