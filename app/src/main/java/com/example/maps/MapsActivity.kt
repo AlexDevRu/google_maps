@@ -178,14 +178,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun initViews() {
-        binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                getLocationByKey(query.orEmpty())
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean = false
-        })
+        binding.myLocationButton.setOnClickListener {
+            getDeviceLocation()
+        }
 
         mMap.setOnMapClickListener { latLng -> // Creating a marker
             val markerOptions = MarkerOptions()
