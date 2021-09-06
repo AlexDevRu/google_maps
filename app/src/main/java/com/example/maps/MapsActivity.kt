@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -12,6 +13,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.maps.databinding.ActivityMapsBinding
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -20,6 +22,10 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import java.io.IOException
 
 
@@ -180,7 +186,64 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             override fun onQueryTextChange(newText: String?): Boolean = false
         })
+
+        mMap.setOnMapClickListener { latLng -> // Creating a marker
+            val markerOptions = MarkerOptions()
+
+            // Setting the position for the marker
+            markerOptions.position(latLng)
+
+            // Setting the title for the marker.
+            // This will be displayed on taping the marker
+            markerOptions.title(latLng.latitude.toString() + " : " + latLng.longitude)
+
+            // Clears the previously touched position
+            mMap.clear()
+
+            moveCamera(latLng, DEFAULT_ZOOM)
+
+            // Placing a marker on the touched position
+            mMap.addMarker(markerOptions)
+        }
+
+        Places.initialize(applicationContext, getString(R.string.google_maps_key))
+
+        // Initialize the AutocompleteSupportFragment.
+        val autocompleteFragment =
+            supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
+
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.name + ", " + place.id + ", " + place.latLng)
+                if(place.latLng != null) {
+                    mMap.clear()
+
+                    moveCamera(place.latLng!!, DEFAULT_ZOOM)
+
+                    val markerOptions = MarkerOptions()
+                    // Setting the position for the marker
+                    markerOptions.position(place.latLng!!)
+                    // Setting the title for the marker.
+                    // This will be displayed on taping the marker
+                    mMap.addMarker(markerOptions)
+                }
+
+            }
+
+            override fun onError(status: Status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: $status")
+            }
+        })
     }
+
+    private var currentLocation: Location? = null
+    private var currentAddress: Address? = null
 
     private fun getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location")
@@ -191,10 +254,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 location.addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         Log.d(TAG, "onComplete: found location!")
-                        val currentLocation = task.result
+                        currentLocation = task.result
+                        val list =  Geocoder(this).getFromLocation(currentLocation!!.latitude, currentLocation!!.longitude, 1)
+                        currentAddress = list.firstOrNull()
+                        // Initialize the AutocompleteSupportFragment.
+                        val autocompleteFragment =
+                            supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
+                        autocompleteFragment.setCountry(currentAddress?.countryCode)
+                        Log.w(TAG, "currentAddress: ${currentAddress}")
                         Log.d(TAG, "currentLocation: ${currentLocation}")
                         moveCamera(
-                            LatLng(currentLocation.latitude, currentLocation.longitude),
+                            LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
                             DEFAULT_ZOOM
                         )
                     } else {
@@ -217,7 +287,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             TAG,
             "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude
         )
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
 }
