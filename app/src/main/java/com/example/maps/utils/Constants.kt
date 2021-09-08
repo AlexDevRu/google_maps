@@ -1,4 +1,4 @@
-package com.example.maps
+package com.example.maps.utils
 
 object Constants {
     val LOCATION_PERMISSION_REQUEST_CODE = 1

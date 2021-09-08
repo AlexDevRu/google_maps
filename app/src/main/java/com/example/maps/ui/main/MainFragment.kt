@@ -1,17 +1,28 @@
-package com.example.maps
+package com.example.maps.ui.main
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.example.maps.databinding.ActivityMapsBinding
+import com.example.domain.common.Result
+import com.example.domain.models.PlaceInfo
+import com.example.maps.R
+import com.example.maps.databinding.FragmentMainBinding
+import com.example.maps.ui.adapters.ReviewAdapter
+import com.example.maps.ui.base.BaseFragment
+import com.example.maps.utils.Constants
+import com.example.maps.utils.GoogleMapUtil
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -20,13 +31,17 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var binding: ActivityMapsBinding
+@AndroidEntryPoint
+class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate),
+    OnMapReadyCallback {
+
+    private val viewModel by viewModels<MainVM>()
 
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
 
@@ -36,22 +51,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var googleMapUtil: GoogleMapUtil
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private lateinit var reviewAdapter: ReviewAdapter
 
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         autocompleteFragment =
-            supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
+            childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
         autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+
+        reviewAdapter = ReviewAdapter()
 
         checkLocationPermission()
     }
 
     private fun initMap() {
-        val mapFragment = supportFragmentManager
+        val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
@@ -64,29 +79,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 
         if (ContextCompat.checkSelfPermission(
-                applicationContext,
+                requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if (ContextCompat.checkSelfPermission(
-                    applicationContext,
+                    requireContext(),
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 initMap()
             } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    permissions,
-                    Constants.LOCATION_PERMISSION_REQUEST_CODE
-                )
+                requestPermissions(permissions, Constants.LOCATION_PERMISSION_REQUEST_CODE)
             }
         } else {
-            ActivityCompat.requestPermissions(
-                this,
-                permissions,
-                Constants.LOCATION_PERMISSION_REQUEST_CODE
-            )
+            requestPermissions(permissions, Constants.LOCATION_PERMISSION_REQUEST_CODE)
         }
     }
 
@@ -115,7 +122,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        googleMapUtil = GoogleMapUtil(googleMap, applicationContext)
+        googleMapUtil = GoogleMapUtil(googleMap, requireContext())
 
         if (googleMapUtil.checkCoarseAndFineLocationPermissions()) {
             getDeviceLocation()
@@ -132,6 +139,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         googleMapUtil.initTouchEvents()
+
+        googleMapUtil.setOnClickMapListener() {
+            viewModel.getInfoByLocation(it)
+        }
 
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
@@ -150,13 +161,73 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             startActivityForResult(intent, Constants.SPEECH_REQUEST_CODE)
         }
+
+        //binding.motionLayout.setTransition(R.id.none)
+        binding.motionLayout.transitionToState(R.id.none)
+        binding.placeInfo.reviewsList.adapter = reviewAdapter
+
+        observe()
+    }
+
+    private fun observe() {
+        viewModel.placeData.observe(viewLifecycleOwner) {
+            when(it) {
+                is Result.Loading -> {
+                    binding.placeInfo.progressBar.visibility = View.VISIBLE
+                    binding.placeInfo.placeName.visibility = View.GONE
+                    binding.placeInfo.placeAddress.visibility = View.GONE
+                    binding.motionLayout.transitionToState(R.id.part)
+                    binding.motionLayout.setTransition(R.id.expandTransition)
+                }
+                is Result.Success -> {
+                    binding.placeInfo.progressBar.visibility = View.GONE
+                    binding.placeInfo.placeName.visibility = View.VISIBLE
+                    binding.placeInfo.placeAddress.visibility = View.VISIBLE
+
+                    val place = it.value
+                    Log.w("MapsActivity", "place found: ${place}")
+
+                    setCurrentPlaceData(place)
+                }
+                is Result.Failure -> {
+                    binding.placeInfo.progressBar.visibility = View.GONE
+                    Log.e("MapsActivity", "place found exception: ${it.throwable.message}")
+                }
+            }
+        }
+    }
+
+    private fun setCurrentPlaceData(place: PlaceInfo) {
+        binding.placeInfo.placeName.text = resources.getString(R.string.place_name, place.name)
+        binding.placeInfo.placeAddress.text = resources.getString(R.string.place_address, place.address)
+
+        if(place.phoneNumber != null)
+            binding.placeInfo.phoneNumber.text = resources.getString(R.string.place_phone, place.phoneNumber)
+        else
+            binding.placeInfo.phoneNumber.visibility = View.GONE
+
+        if(place.website != null) {
+            val data = resources.getString(R.string.place_website, place.website)
+            val content = SpannableString(data)
+            content.setSpan(UnderlineSpan(), 10, data.length, 0)
+            binding.placeInfo.placeWebsite.text = resources.getString(R.string.place_website, place.website)
+        } else {
+            binding.placeInfo.placeWebsite.visibility = View.GONE
+        }
+
+        binding.placeInfo.placeTypes.text = resources.getString(R.string.place_types, place.types?.joinToString(", "))
+
+        binding.placeInfo.placeRating.rating = place.rating?.toFloat() ?: 0f
+        binding.placeInfo.ratingText.text = "%.1f".format(place.rating)
+
+        reviewAdapter.submitList(place.reviews)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when(requestCode) {
             Constants.SPEECH_REQUEST_CODE -> {
-                if(resultCode == 200 && resultCode == RESULT_OK) {
+                if(resultCode == 200 && resultCode == AppCompatActivity.RESULT_OK) {
                     val list = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     val text = list?.firstOrNull()
                     text?.let {
@@ -173,7 +244,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         try {
             if (googleMapUtil.checkCoarseAndFineLocationPermissions()) {
                 val location = googleMapUtil.fusedLocationProviderClient.lastLocation
-                location.addOnCompleteListener(this) { task ->
+                location.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful) {
                         Log.d(TAG, "onComplete: found location!")
                         val currentLocation = task.result
@@ -190,7 +261,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     } else {
                         Log.d(TAG, "onComplete: current location is null")
                         Toast.makeText(
-                            applicationContext,
+                            requireContext(),
                             "unable to get current location",
                             Toast.LENGTH_SHORT
                         ).show()

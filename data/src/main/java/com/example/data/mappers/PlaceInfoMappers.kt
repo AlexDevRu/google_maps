@@ -1,0 +1,65 @@
+package com.example.data.mappers
+
+import com.example.data.api.responses.*
+import com.example.domain.models.PlaceInfo
+
+fun PlaceInfoResponse.toModel(): PlaceInfo {
+    return PlaceInfo(
+        address = result.formatted_address,
+        phoneNumber = result.formatted_phone_number,
+        name = result.name,
+        openingHours = result.opening_hours?.toModel(),
+        photos = result.photos?.map { it.toModel() },
+        placeId = result.place_id,
+        rating = result.rating,
+        reviews = result.reviews?.map { it.toModel() },
+        types = result.types,
+        url = result.url,
+        userRatingsTotal = result.user_ratings_total,
+        utcOffset = result.utc_offset,
+        website = result.website
+    )
+}
+
+fun Photo.toModel(): com.example.domain.models.Photo {
+    return com.example.domain.models.Photo(
+        height = height,
+        htmlAttributions = html_attributions,
+        photoReference = photo_reference,
+        width = width
+    )
+}
+
+fun OpeningHours.toModel(): com.example.domain.models.OpeningHours {
+    return com.example.domain.models.OpeningHours(
+        openNow = open_now,
+        periods = periods.map { it.toModel() },
+        weekdayText = weekday_text
+    )
+}
+
+fun Period.toModel(): com.example.domain.models.Period {
+    return com.example.domain.models.Period(
+        close = close.toModel(),
+        open = open.toModel()
+    )
+}
+
+fun Time.toModel(): com.example.domain.models.Time {
+    return com.example.domain.models.Time(
+        day = day,
+        time = time
+    )
+}
+
+fun Review.toModel(): com.example.domain.models.Review {
+    return com.example.domain.models.Review(
+        authorName = author_name,
+        authorUrl = author_url,
+        profilePhotoUrl = profile_photo_url,
+        rating = rating,
+        relativeTimeDescription = relative_time_description,
+        text = text,
+        time = time
+    )
+}

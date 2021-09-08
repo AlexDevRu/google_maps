@@ -1,2 +1,4 @@
 rootProject.name = "Maps"
 include ':app'
+include ':domain'
+include ':data'

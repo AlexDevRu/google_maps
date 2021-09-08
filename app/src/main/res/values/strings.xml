@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Maps</string>
     <string name="title_activity_maps">Map</string>
+
+    <string name="place_name">Name: %1$s</string>
+    <string name="place_address">Address: %1$s</string>
+    <string name="place_phone">Phone: %1$s</string>
+    <string name="place_types">Types: %1$s</string>
+    <string name="place_website">Website: %1$s</string>
 </resources>
