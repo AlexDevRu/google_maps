@@ -28,6 +28,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PointOfInterest
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
@@ -149,6 +150,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 Log.i(TAG, "Place: " + place.name + ", " + place.id + ", " + place.latLng)
                 if(place.latLng != null) {
                     googleMapUtil.createSingleMarker(place)
+                    viewModel.getInfoByLocation(place.id!!)
                 }
             }
 
@@ -162,7 +164,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             startActivityForResult(intent, Constants.SPEECH_REQUEST_CODE)
         }
 
-        //binding.motionLayout.setTransition(R.id.none)
         binding.motionLayout.transitionToState(R.id.none)
         binding.placeInfo.reviewsList.adapter = reviewAdapter
 
