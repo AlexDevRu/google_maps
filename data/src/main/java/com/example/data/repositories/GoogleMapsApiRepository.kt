@@ -2,7 +2,9 @@ package com.example.data.repositories
 
 import com.example.data.api.GoogleMapApiService
 import com.example.data.mappers.toModel
-import com.example.domain.models.PlaceInfo
+import com.example.domain.models.Location
+import com.example.domain.models.directions.Direction
+import com.example.domain.models.place_info.PlaceInfo
 import com.example.domain.repositories.IGoogleMapApiRepository
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -17,5 +19,12 @@ class GoogleMapsApiRepository @Inject constructor(
         return service.getPlaceInfo(placeId).subscribeOn(Schedulers.io()).map {
             it.toModel()
         }
+    }
+
+    override fun getDirection(origin: Location, destination: Location): Single<Direction> {
+        val originStr = "${origin.lat},${origin.lng}"
+        val destStr = "${destination.lat},${destination.lng}"
+        return service.getDirection(originStr, destStr)
+            .subscribeOn(Schedulers.io()).map { it.toModel() }
     }
 }

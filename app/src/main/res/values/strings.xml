@@ -7,4 +7,6 @@
     <string name="place_phone">Phone: %1$s</string>
     <string name="place_types">Types: %1$s</string>
     <string name="place_website">Website: %1$s</string>
+    <string name="choose_origin">Choose origin</string>
+    <string name="choose_destination">Choose destination</string>
 </resources>

@@ -4,26 +4,40 @@
     xmlns:motion="http://schemas.android.com/apk/res-auto">
 
     <Transition
-        android:id="@+id/expandTransition"
-        motion:constraintSetEnd="@id/full"
-        motion:constraintSetStart="@id/part"
+        android:id="@+id/expandPlaceInfoTransition"
+        motion:constraintSetEnd="@id/fullVisiblePlaceInfo"
+        motion:constraintSetStart="@id/particallyVisiblePlaceInfo"
         motion:duration="400">
        <KeyFrameSet>
        </KeyFrameSet>
-        <OnSwipe motion:touchAnchorId="@+id/placeInfo" motion:touchRegionId="@+id/placeInfo"
+        <OnSwipe motion:touchAnchorId="@+id/placeInfo" motion:touchRegionId="@id/placeInfo"
             motion:dragDirection="dragUp" motion:touchAnchorSide="top" />
     </Transition>
 
     <Transition
-        android:id="@+id/hideTransition"
-        motion:constraintSetEnd="@id/part"
-        motion:constraintSetStart="@id/none"
+        android:id="@+id/showPlaceInfoTransition"
+        motion:constraintSetEnd="@id/particallyVisiblePlaceInfo"
+        motion:constraintSetStart="@id/hiddenPlaceInfo"
         motion:duration="400">
         <KeyFrameSet>
         </KeyFrameSet>
     </Transition>
 
-    <ConstraintSet android:id="@+id/none">
+    <Transition
+        android:id="@+id/directionsTransition"
+        motion:constraintSetEnd="@id/visibleDirections"
+        motion:constraintSetStart="@id/hiddenDirections"
+        motion:duration="400">
+        <KeyFrameSet>
+        </KeyFrameSet>
+    </Transition>
+
+
+
+
+
+
+    <ConstraintSet android:id="@+id/hiddenPlaceInfo">
         <Constraint
             android:id="@+id/placeInfo"
             android:layout_width="match_parent"
@@ -41,9 +55,15 @@
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            motion:layout_editor_absoluteY="137dp"
+            android:layout_height="wrap_content"
+            motion:layout_editor_absoluteX="36dp"
+            android:layout_width="wrap_content"
+            android:id="@+id/toggleButton" />
     </ConstraintSet>
 
-    <ConstraintSet android:id="@+id/part">
+    <ConstraintSet android:id="@+id/particallyVisiblePlaceInfo">
         <Constraint
             android:id="@+id/placeInfo"
             android:layout_width="match_parent"
@@ -64,7 +84,7 @@
             motion:layout_constraintTop_toTopOf="parent" />
     </ConstraintSet>
 
-    <ConstraintSet android:id="@+id/full">
+    <ConstraintSet android:id="@+id/fullVisiblePlaceInfo">
         <Constraint
             android:id="@+id/placeInfo"
             android:layout_width="match_parent"
@@ -82,5 +102,32 @@
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintBottom_toTopOf="parent" />
+    </ConstraintSet>
+
+
+
+
+
+
+    <ConstraintSet android:id="@+id/hiddenDirections">
+        <Constraint
+            android:id="@+id/directionsChoosing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="parent" />
+
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/visibleDirections">
+        <Constraint
+            android:id="@+id/directionsChoosing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
     </ConstraintSet>
 </MotionScene>

@@ -89,6 +89,9 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
+    implementation 'com.google.maps.android:maps-utils-ktx:2.4.0'
+    implementation 'com.google.maps.android:maps-utils-ktx:3.1.0'
+
 
     // Dagger Core
     implementation "com.google.dagger:dagger:2.37"

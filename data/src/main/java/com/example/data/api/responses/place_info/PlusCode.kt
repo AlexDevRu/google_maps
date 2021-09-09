@@ -1,4 +1,4 @@
-package com.example.data.api.responses
+package com.example.data.api.responses.place_info
 
 data class PlusCode(
     val compound_code: String,

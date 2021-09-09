@@ -1,7 +1,7 @@
 package com.example.data.mappers
 
-import com.example.data.api.responses.*
-import com.example.domain.models.PlaceInfo
+import com.example.data.api.responses.place_info.*
+import com.example.domain.models.place_info.PlaceInfo
 
 fun PlaceInfoResponse.toModel(): PlaceInfo {
     return PlaceInfo(
@@ -21,8 +21,8 @@ fun PlaceInfoResponse.toModel(): PlaceInfo {
     )
 }
 
-fun Photo.toModel(): com.example.domain.models.Photo {
-    return com.example.domain.models.Photo(
+fun Photo.toModel(): com.example.domain.models.place_info.Photo {
+    return com.example.domain.models.place_info.Photo(
         height = height,
         htmlAttributions = html_attributions,
         photoReference = photo_reference,
@@ -30,30 +30,30 @@ fun Photo.toModel(): com.example.domain.models.Photo {
     )
 }
 
-fun OpeningHours.toModel(): com.example.domain.models.OpeningHours {
-    return com.example.domain.models.OpeningHours(
+fun OpeningHours.toModel(): com.example.domain.models.place_info.OpeningHours {
+    return com.example.domain.models.place_info.OpeningHours(
         openNow = open_now,
         periods = periods.map { it.toModel() },
         weekdayText = weekday_text
     )
 }
 
-fun Period.toModel(): com.example.domain.models.Period {
-    return com.example.domain.models.Period(
+fun Period.toModel(): com.example.domain.models.place_info.Period {
+    return com.example.domain.models.place_info.Period(
         close = close.toModel(),
         open = open.toModel()
     )
 }
 
-fun Time.toModel(): com.example.domain.models.Time {
-    return com.example.domain.models.Time(
+fun Time.toModel(): com.example.domain.models.place_info.Time {
+    return com.example.domain.models.place_info.Time(
         day = day,
         time = time
     )
 }
 
-fun Review.toModel(): com.example.domain.models.Review {
-    return com.example.domain.models.Review(
+fun Review.toModel(): com.example.domain.models.place_info.Review {
+    return com.example.domain.models.place_info.Review(
         authorName = author_name,
         authorUrl = author_url,
         profilePhotoUrl = profile_photo_url,
