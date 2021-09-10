@@ -46,7 +46,7 @@
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="parent" />
         <Constraint
-            android:id="@+id/searchWrapper"
+            android:id="@+id/searchPlaceWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -55,12 +55,6 @@
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
-        <Constraint
-            motion:layout_editor_absoluteY="137dp"
-            android:layout_height="wrap_content"
-            motion:layout_editor_absoluteX="36dp"
-            android:layout_width="wrap_content"
-            android:id="@+id/toggleButton" />
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/particallyVisiblePlaceInfo">
@@ -73,7 +67,7 @@
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="parent" />
         <Constraint
-            android:id="@+id/searchWrapper"
+            android:id="@+id/searchPlaceWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -93,7 +87,7 @@
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintBottom_toBottomOf="parent" />
         <Constraint
-            android:id="@+id/searchWrapper"
+            android:id="@+id/searchPlaceWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"

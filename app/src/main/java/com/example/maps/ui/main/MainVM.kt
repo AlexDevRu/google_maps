@@ -1,5 +1,8 @@
 package com.example.maps.ui.main
 
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,15 +12,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.domain.common.Result
 import com.example.domain.models.Location
 import com.example.domain.models.directions.Direction
+import com.example.maps.utils.GoogleMapUtil
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.Polyline
+import com.google.android.libraries.places.api.model.Place
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 @HiltViewModel
-class MainVM @Inject constructor(private val googleMapsApiRepository: GoogleMapsApiRepository): ViewModel() {
-
-    private var job: Job? = null
+class MainVM @Inject constructor(app: Application, private val googleMapsApiRepository: GoogleMapsApiRepository): AndroidViewModel(app) {
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -26,6 +32,11 @@ class MainVM @Inject constructor(private val googleMapsApiRepository: GoogleMaps
 
     private val _direction = MutableLiveData<Result<Direction>>()
     val direction: LiveData<Result<Direction>> = _direction
+
+
+    val googleMapUtil = GoogleMapUtil(app)
+
+    fun requireGoogleMapUtil() = googleMapUtil
 
     fun getInfoByLocation(placeId: String) {
         _placeData.value = Result.Loading()
@@ -51,6 +62,22 @@ class MainVM @Inject constructor(private val googleMapsApiRepository: GoogleMaps
                     _direction.value = Result.Failure(it)
                 })
         )
+    }
+
+    fun setPlace(place: Place) {
+        when(googleMapUtil.markerMode) {
+            GoogleMapUtil.MAP_MODE.PLACE -> {
+                googleMapUtil.createPlaceMarker(place.latLng!!)
+                getInfoByLocation(place.id!!)
+            }
+            GoogleMapUtil.MAP_MODE.DIRECTION -> {
+                if(googleMapUtil.currentDirectionMarker == GoogleMapUtil.DIRECTION_MARKER.ORIGIN)
+                    googleMapUtil.createOriginMarker(place.latLng!!)
+                else
+                    googleMapUtil.createDestinationMarker(place.latLng!!)
+            }
+        }
+        googleMapUtil.moveCamera(place.latLng!!)
     }
 
     override fun onCleared() {

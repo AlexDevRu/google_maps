@@ -1,3 +1,4 @@
+
 package com.example.maps.utils
 
 import android.Manifest
@@ -20,18 +21,45 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
+import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.PolyUtil
 import java.io.IOException
 
 
 class GoogleMapUtil(
-    private val googleMap: GoogleMap,
     private val context: Context
 ) {
 
-    enum class MAP_MARKER_MODE {
+    private var googleMap: GoogleMap? = null
+
+    fun initMap(googleMap: GoogleMap) {
+        this.googleMap = googleMap
+        printInfo()
+        if(markerMode == MAP_MODE.PLACE) {
+            if(placeMarker != null)
+                createPlaceMarker(placeMarker!!.position)
+        } else {
+            origin?.let { createOriginMarker(it.position) }
+            destination?.let { createDestinationMarker(it.position) }
+        }
+        googleMap.setOnCameraMoveListener {
+            currentCameraPosition = this.googleMap?.cameraPosition?.target
+        }
+    }
+
+    fun printInfo() {
+        Log.w("MapsActivity", "markerMode: ${markerMode}")
+        Log.w("MapsActivity", "origin: ${origin?.position}")
+        Log.w("MapsActivity", "destination: ${destination?.position}")
+        Log.w("MapsActivity", "placeMarker: ${placeMarker?.position}")
+    }
+
+    private val TAG = "MapsActivity"
+    private val DEFAULT_ZOOM = 15f
+
+    enum class MAP_MODE {
         DIRECTION, PLACE
     }
 
@@ -39,32 +67,58 @@ class GoogleMapUtil(
         ORIGIN, DESTINATION
     }
 
-    var origin: Marker? = null
+    var currentCameraPosition: LatLng? = null
         private set
 
+    var originChangeListener: (() -> Unit)? = null
+        set(value) {
+            field = value
+            if(origin != null) field?.invoke()
+        }
+
+    var destinationChangeListener: (() -> Unit)? = null
+        set(value) {
+            field = value
+            if(destination != null) field?.invoke()
+        }
+
+    var placeMarker: Marker? = null
+        private set(value) {
+            field = value
+        }
+
+    var origin: Marker? = null
+        private set(value) {
+            field = value
+            originChangeListener?.invoke()
+        }
+
     var destination: Marker? = null
-        private set
+        private set(value) {
+            field = value
+            destinationChangeListener?.invoke()
+        }
 
     private var currentDirection: Polyline? = null
 
-    var markerMode = MAP_MARKER_MODE.PLACE
+    var markerMode = MAP_MODE.PLACE
         set(value) {
             field = value
-            if(field == MAP_MARKER_MODE.PLACE) {
-                origin = null
-                destination = null
-            }
+            val isDirection = field == MAP_MODE.DIRECTION
+            origin?.isVisible = isDirection
+            destination?.isVisible = isDirection
+            currentDirection?.isVisible = isDirection
+            Log.e(TAG, "markerMode dir: ${field == MAP_MODE.DIRECTION}")
+            printInfo()
         }
 
     var currentDirectionMarker = DIRECTION_MARKER.DESTINATION
 
-    private val TAG = "MapsActivity"
-    private val DEFAULT_ZOOM = 15f
 
     val fusedLocationProviderClient: FusedLocationProviderClient
     private val placesClient: PlacesClient
 
-    private var mapClickHandler: ((String) -> Unit)? = null
+    var mapClickHandler: ((String) -> Unit)? = null
 
     var hasMarkers: Boolean = false
         private set
@@ -79,23 +133,13 @@ class GoogleMapUtil(
             TAG,
             "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude
         )
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
+        googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
-    fun createSingleMarker(latLng: LatLng, title: String? = null) {
-        moveCamera(latLng)
-
-        googleMap.clear()
-
-        createMarker(latLng, title ?: "${latLng.latitude} : ${latLng.longitude}")
-    }
-
-    fun createSingleMarker(place: Place) {
-        moveCamera(place.latLng!!)
-
-        googleMap.clear()
-
-        createMarker(place.latLng!!, place.name)
+    fun createPlaceMarker(latLng: LatLng) {
+        placeMarker?.remove()
+        placeMarker = createMarker(latLng, null)
+        placeMarker?.isVisible = markerMode == MAP_MODE.PLACE
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -107,6 +151,7 @@ class GoogleMapUtil(
             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE),
             true
         )
+        origin?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -118,6 +163,7 @@ class GoogleMapUtil(
             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE),
             true
         )
+        destination?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -128,7 +174,7 @@ class GoogleMapUtil(
         markerOptions.draggable(draggable)
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
         hasMarkers = true
-        return googleMap.addMarker(markerOptions)
+        return googleMap?.addMarker(markerOptions)
     }
 
     private fun getLocationByKey(query: String) {
@@ -138,7 +184,7 @@ class GoogleMapUtil(
             if(list.isNotEmpty()) {
                 val address = list.first()
                 val marker = LatLng(address.latitude, address.longitude)
-                googleMap.addMarker(MarkerOptions().position(marker).title(address.getAddressLine(0)))
+                googleMap?.addMarker(MarkerOptions().position(marker).title(address.getAddressLine(0)))
                 moveCamera(marker)
             }
         } catch (e: IOException) {
@@ -149,8 +195,8 @@ class GoogleMapUtil(
     @SuppressLint("MissingPermission")
     fun setDefaultSettings(): Boolean {
         if (checkCoarseAndFineLocationPermissions()) {
-            googleMap.isMyLocationEnabled = true
-            googleMap.uiSettings.isMyLocationButtonEnabled = false
+            googleMap?.isMyLocationEnabled = true
+            googleMap?.uiSettings?.isMyLocationButtonEnabled = false
             return true
         }
         return false
@@ -162,10 +208,11 @@ class GoogleMapUtil(
     }
 
     fun initTouchEvents() {
-        googleMap.setOnPoiClickListener {
+        googleMap?.setOnPoiClickListener {
 
-            if(markerMode == MAP_MARKER_MODE.PLACE) {
-                createSingleMarker(it.latLng, it.name)
+            if(markerMode == MAP_MODE.PLACE) {
+                placeMarker?.remove()
+                placeMarker = createMarker(it.latLng, it.name)
                 mapClickHandler?.invoke(it.placeId)
             } else {
                 if(currentDirectionMarker == DIRECTION_MARKER.ORIGIN)
@@ -213,10 +260,6 @@ class GoogleMapUtil(
         return currentAddress
     }
 
-    fun setOnClickMapListener(mapClickHandler: (String) -> Unit) {
-        this.mapClickHandler = mapClickHandler
-    }
-
     fun createDirection(direction: Direction) {
         if(direction.routes.isNullOrEmpty())
             return
@@ -233,7 +276,7 @@ class GoogleMapUtil(
         polylineOptions.addAll(polylineList)
 
         currentDirection?.remove()
-        currentDirection = googleMap.addPolyline(polylineOptions)
+        currentDirection = googleMap?.addPolyline(polylineOptions)
 
         if(direction.bounds != null) {
             val builder = LatLngBounds.builder()
@@ -249,7 +292,31 @@ class GoogleMapUtil(
                 )
             )
 
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
+            googleMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun getDeviceLocation() {
+        val placeFields = listOf(Place.Field.LAT_LNG)
+        val request = FindCurrentPlaceRequest.builder(placeFields).build()
+        if(checkCoarseAndFineLocationPermissions()) {
+            placesClient.findCurrentPlace(request)
+                .addOnSuccessListener { response: FindCurrentPlaceResponse ->
+                    for (placeLikelihood in response.placeLikelihoods) {
+                        Log.i(
+                            TAG, String.format(
+                                "current latlng: '%s'",
+                                placeLikelihood.place.latLng
+                            )
+                        )
+                        moveCamera(placeLikelihood.place.latLng!!)
+                    }
+                }.addOnFailureListener { exception: Exception? ->
+                    if (exception is ApiException) {
+                        Log.e(TAG, "Place not found: " + exception.statusCode)
+                    }
+                }
         }
     }
 }
