@@ -3,6 +3,7 @@ package com.example.maps.ui.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.text.SpannableString
@@ -10,29 +11,32 @@ import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.domain.common.Result
-import com.example.domain.models.Location
 import com.example.domain.models.directions.Direction
 import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
+import com.example.maps.mappers.toModel
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
+import com.example.maps.utils.InternetUtil
+import com.example.maps.utils.extensions.setHtml
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -67,9 +71,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         firstInit = savedInstanceState == null
 
-        /*requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), "it.error", Toast.LENGTH_LONG).show()
-        }*/
+        internetObserver = InternetUtil(requireContext())
 
         checkLocationPermission()
     }
@@ -208,6 +210,10 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         binding.directionsChoosing.originButton.setOnClickListener {
             viewModel.requireGoogleMapUtil().currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
+            autocompleteFragment.startActivity(
+                Autocomplete.IntentBuilder(
+                AutocompleteActivityMode.FULLSCREEN, listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+                .build(requireContext()))
         }
 
         binding.directionsChoosing.destinationButton.setOnClickListener {
@@ -216,14 +222,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         binding.directionsChoosing.buildDirectionButton.setOnClickListener {
             if(viewModel.requireGoogleMapUtil().origin != null && viewModel.requireGoogleMapUtil().destination != null) {
-                val originLocation = Location(
-                    viewModel.requireGoogleMapUtil().origin!!.position.latitude,
-                    viewModel.requireGoogleMapUtil().origin!!.position.longitude,
-                )
-                val destinationLocation = Location(
-                    viewModel.requireGoogleMapUtil().destination!!.position.latitude,
-                    viewModel.requireGoogleMapUtil().destination!!.position.longitude,
-                )
+                val originLocation = viewModel.requireGoogleMapUtil().origin!!.position.toModel()
+                val destinationLocation = viewModel.requireGoogleMapUtil().destination!!.position.toModel()
                 viewModel.getDirection(originLocation, destinationLocation)
             }
         }
@@ -254,16 +254,14 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             when(it) {
                 is Result.Loading -> {
                     binding.placeInfo.progressBar.visibility = View.VISIBLE
-                    binding.placeInfo.placeName.visibility = View.GONE
-                    binding.placeInfo.placeAddress.visibility = View.GONE
+                    binding.placeInfo.placeInfoContainer.visibility = View.GONE
 
                     binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                     binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
                 }
                 is Result.Success -> {
                     binding.placeInfo.progressBar.visibility = View.GONE
-                    binding.placeInfo.placeName.visibility = View.VISIBLE
-                    binding.placeInfo.placeAddress.visibility = View.VISIBLE
+                    binding.placeInfo.placeInfoContainer.visibility = View.VISIBLE
 
                     val place = it.value
                     Log.w("MapsActivity", "place found: ${place}")
@@ -273,6 +271,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 is Result.Failure -> {
                     binding.placeInfo.progressBar.visibility = View.GONE
                     Log.e("MapsActivity", "place found exception: ${it.throwable.message}")
+                    showSnackBar(it.throwable.message.orEmpty())
                 }
             }
         }
@@ -280,9 +279,15 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         viewModel.direction.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-
+                    binding.directionsChoosing.duration.visibility = View.GONE
+                    binding.directionsChoosing.distance.visibility = View.GONE
+                    binding.directionsChoosing.progressBar.visibility = View.VISIBLE
                 }
                 is Result.Success -> {
+                    binding.directionsChoosing.duration.visibility = View.VISIBLE
+                    binding.directionsChoosing.distance.visibility = View.VISIBLE
+                    binding.directionsChoosing.progressBar.visibility = View.GONE
+
                     val direction = it.value
                     Log.w("MapsActivity", "direction found: ${direction}")
 
@@ -291,6 +296,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 }
                 is Result.Failure -> {
                     Log.e("MapsActivity", "direction exception: ${it.throwable.message}")
+                    showSnackBar(it.throwable.message.orEmpty())
                 }
             }
         }
@@ -309,7 +315,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             val data = resources.getString(R.string.place_website, place.website)
             val content = SpannableString(data)
             content.setSpan(UnderlineSpan(), 10, data.length, 0)
-            binding.placeInfo.placeWebsite.text = resources.getString(R.string.place_website, place.website)
+            binding.placeInfo.placeWebsite.text = content
         } else {
             binding.placeInfo.placeWebsite.visibility = View.GONE
         }
@@ -323,8 +329,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun updateDirectionInfo(direction: Direction) {
-        binding.directionsChoosing.distance.text = resources.getString(R.string.distance_km, "%.2f".format(direction.distance))
-        binding.directionsChoosing.duration.text = resources.getString(R.string.duration_hours, "%.1f".format(direction.distance))
+        binding.directionsChoosing.distance.setHtml(resources.getString(R.string.total_distance, "%.2f".format(direction.distance)))
+        binding.directionsChoosing.duration.setHtml(resources.getString(R.string.total_duration, "%.1f".format(direction.distance)))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -358,17 +364,11 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                                 viewModel.requireGoogleMapUtil().createOriginMarker(LatLng(currentLocation.latitude, currentLocation.longitude))
                             }
 
-                            job?.cancel()
-                            job = lifecycleScope.launch(Dispatchers.IO) {
-                                val currentAddress = viewModel.requireGoogleMapUtil().getAddress(currentLocation)
-                                autocompleteFragment.setCountry(currentAddress?.countryCode)
+                            if(internetObserver.isInternetOn()) {
+                                getDeviceAddress(currentLocation)
+                            } else {
+                                showSnackBar("device location not found. Turn on the internet")
                             }
-
-                            /*if(viewModel.googleMapUtil.currentCameraPosition == null) {
-                                viewModel.requireGoogleMapUtil().moveCamera(
-                                    LatLng(currentLocation.latitude, currentLocation.longitude)
-                                )
-                            }*/
 
                             viewModel.requireGoogleMapUtil().moveCamera(
                                 LatLng(currentLocation.latitude, currentLocation.longitude)
@@ -390,6 +390,14 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             }
         } catch (e: SecurityException) {
             Log.e(TAG, "getDeviceLocation: SecurityException: " + e.message)
+        }
+    }
+
+    private fun getDeviceAddress(currentLocation: Location) {
+        job?.cancel()
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            val currentAddress = viewModel.googleMapUtil.getAddress(currentLocation)
+            autocompleteFragment.setCountry(currentAddress?.countryCode)
         }
     }
 }

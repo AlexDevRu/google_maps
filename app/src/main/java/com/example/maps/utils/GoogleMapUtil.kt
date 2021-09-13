@@ -5,14 +5,18 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.util.Log
+import androidx.annotation.ColorRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.domain.models.directions.Direction
 import com.example.maps.R
+import com.example.maps.ui.adapters.CustomInfoWindowAdapter
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -34,6 +38,11 @@ class GoogleMapUtil(
 
     private var googleMap: GoogleMap? = null
 
+    private val internetObserver = InternetUtil(context)
+
+    val colors = listOf(R.color.black, R.color.green, R.color.red, R.color.teal_700, R.color.purple_500, R.color.orange)
+
+    @SuppressLint("PotentialBehaviorOverride")
     fun initMap(googleMap: GoogleMap) {
         this.googleMap = googleMap
         printInfo()
@@ -47,6 +56,7 @@ class GoogleMapUtil(
         googleMap.setOnCameraMoveListener {
             currentCameraPosition = this.googleMap?.cameraPosition?.target
         }
+        googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter(context))
     }
 
     fun printInfo() {
@@ -99,7 +109,7 @@ class GoogleMapUtil(
             destinationChangeListener?.invoke()
         }
 
-    private var currentDirection: Polyline? = null
+    private val drivingDirection = hashMapOf<Polyline, Marker>()
 
     var markerMode = MAP_MODE.PLACE
         set(value) {
@@ -107,8 +117,11 @@ class GoogleMapUtil(
             val isDirection = field == MAP_MODE.DIRECTION
             origin?.isVisible = isDirection
             destination?.isVisible = isDirection
-            currentDirection?.isVisible = isDirection
-            Log.e(TAG, "markerMode dir: ${field == MAP_MODE.DIRECTION}")
+            drivingDirection.forEach {
+                it.key.isVisible = isDirection
+                it.value.isVisible = isDirection
+            }
+            Log.e(TAG, "markerMode direction: ${isDirection}")
             printInfo()
         }
 
@@ -149,6 +162,7 @@ class GoogleMapUtil(
             latLng,
             null,
             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE),
+            null,
             true
         )
         origin?.isVisible = markerMode == MAP_MODE.DIRECTION
@@ -161,17 +175,19 @@ class GoogleMapUtil(
             latLng,
             null,
             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE),
+            null,
             true
         )
         destination?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
 
     @SuppressLint("PotentialBehaviorOverride")
-    private fun createMarker(latLng: LatLng, title: String?, markerIcon: BitmapDescriptor? = null, draggable: Boolean = false): Marker? {
+    private fun createMarker(latLng: LatLng, title: String?, markerIcon: BitmapDescriptor? = null, snippet: String? = null, draggable: Boolean = false): Marker? {
         val markerOptions = MarkerOptions()
         markerOptions.position(latLng)
         markerOptions.title(title)
         markerOptions.draggable(draggable)
+        markerOptions.snippet(snippet)
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
         hasMarkers = true
         return googleMap?.addMarker(markerOptions)
@@ -208,6 +224,12 @@ class GoogleMapUtil(
     }
 
     fun initTouchEvents() {
+        googleMap?.setOnPolylineClickListener {
+            val marker = drivingDirection[it]
+            marker?.showInfoWindow()
+            if(marker != null) moveCamera(marker.position, googleMap!!.cameraPosition.zoom)
+        }
+
         googleMap?.setOnPoiClickListener {
 
             if(markerMode == MAP_MODE.PLACE) {
@@ -220,29 +242,6 @@ class GoogleMapUtil(
                 else
                     createDestinationMarker(it.latLng)
             }
-            /*val placeFields = listOf(
-                Place.Field.ID,
-                Place.Field.NAME,
-                Place.Field.RATING,
-                Place.Field.OPENING_HOURS,
-                Place.Field.PHONE_NUMBER,
-                Place.Field.PHOTO_METADATAS,
-                Place.Field.USER_RATINGS_TOTAL,
-                Place.Field.WEBSITE_URI,
-            )
-            Log.w(TAG, "place id selected: ${it.placeId}")
-
-            val request = FetchPlaceRequest.newInstance(it.placeId, placeFields)
-            placesClient.fetchPlace(request).addOnSuccessListener { response ->
-                val place = response.place
-                Log.i(TAG, "Place found: " + place)
-            }.addOnFailureListener { exception ->
-                if (exception is ApiException) {
-                    Log.e(TAG, "Place not found: " + exception.message)
-                    val statusCode = exception.statusCode
-                    // TODO: Handle error with given status code.
-                }
-            }*/
         }
     }
 
@@ -253,6 +252,9 @@ class GoogleMapUtil(
     }
 
     fun getAddress(latLng: LatLng): Address? {
+        if(!internetObserver.isInternetOn())
+            return null
+
         val list =  Geocoder(context)
             .getFromLocation(latLng.latitude, latLng.longitude, 1)
         val currentAddress = list.firstOrNull()
@@ -260,23 +262,56 @@ class GoogleMapUtil(
         return currentAddress
     }
 
+    private fun addPolylineToMap(polylineList: List<LatLng>, @ColorRes color: Int = R.color.black): Polyline? {
+        val polylineOptions = PolylineOptions()
+        polylineOptions.color(ContextCompat.getColor(context, color))
+        polylineOptions.width(8f)
+        polylineOptions.startCap(ButtCap())
+        polylineOptions.jointType(JointType.ROUND)
+        polylineOptions.clickable(true)
+        polylineOptions.addAll(polylineList)
+
+        return googleMap?.addPolyline(polylineOptions)
+    }
+
     fun createDirection(direction: Direction) {
         if(direction.routes.isNullOrEmpty())
             return
 
-        val polylineList = mutableListOf<LatLng>()
-        for (route in direction.routes!!) {
-            polylineList.addAll(PolyUtil.decode(route.overview_polyline.points))
+        drivingDirection.forEach {
+            it.key.remove()
+            it.value.remove()
         }
-        val polylineOptions = PolylineOptions()
-        polylineOptions.color(ContextCompat.getColor(context, R.color.black))
-        polylineOptions.width(8f)
-        polylineOptions.startCap(ButtCap())
-        polylineOptions.jointType(JointType.ROUND)
-        polylineOptions.addAll(polylineList)
+        drivingDirection.clear()
 
-        currentDirection?.remove()
-        currentDirection = googleMap?.addPolyline(polylineOptions)
+        for (route in direction.routes!!) {
+            //polylineList.addAll(PolyUtil.decode(route.overview_polyline.points))
+            for(leg in route.legs) {
+                for((currentColorIndex, step) in leg.steps.orEmpty().withIndex()) {
+                    val polylineList = mutableListOf<LatLng>()
+                    polylineList.addAll(PolyUtil.decode(step.polyline.points))
+
+                    val polyline = addPolylineToMap(polylineList, colors[currentColorIndex % colors.size])
+
+                    if(polyline != null) {
+                        val midPoint = polyline.points[polyline.points.size / 2]
+
+                        val invisibleMarker =
+                            BitmapDescriptorFactory.fromBitmap(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+
+                        val distance = context.resources.getString(R.string.distance, step.distance.text)
+                        val duration = context.resources.getString(R.string.duration, step.duration.text)
+
+                        val marker = createMarker(midPoint, distance, invisibleMarker,
+                            "${duration}\n\n${step.html_instructions}")
+
+                        marker?.position = midPoint
+
+                        if(marker != null) drivingDirection[polyline] = marker
+                    }
+                }
+            }
+        }
 
         if(direction.bounds != null) {
             val builder = LatLngBounds.builder()

@@ -50,6 +50,7 @@ fun Leg.toModel(): com.example.domain.models.directions.Leg {
         duration = duration.toModel(),
         end_address = end_address,
         end_location = end_location.toModel(),
+        start_location = start_location.toModel(),
         start_address = start_address,
         steps = steps?.map { it.toModel() }
     )

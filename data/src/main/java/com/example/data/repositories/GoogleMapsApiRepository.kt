@@ -9,6 +9,7 @@ import com.example.domain.repositories.IGoogleMapApiRepository
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
+import android.util.Log
 
 
 class GoogleMapsApiRepository @Inject constructor(
@@ -17,7 +18,8 @@ class GoogleMapsApiRepository @Inject constructor(
 
     override fun getInfoByLocation(placeId: String): Single<PlaceInfo> {
         return service.getPlaceInfo(placeId).subscribeOn(Schedulers.io()).map {
-            it.toModel()
+            Log.e("MapsActivity", it.toString())
+            return@map it.toModel()
         }
     }
 
