@@ -6,26 +6,25 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.speech.RecognizerIntent
-import android.text.SpannableString
-import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.example.domain.common.Result
 import com.example.domain.models.directions.Direction
-import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
 import com.example.maps.mappers.toModel
+import com.example.maps.ui.adapters.PlacePhotosAdapter
+import com.example.maps.ui.adapters.PlaceTabsAdapter
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
-import com.example.maps.utils.InternetUtil
 import com.example.maps.utils.extensions.setHtml
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
@@ -37,6 +36,7 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,7 +47,7 @@ import kotlinx.coroutines.launch
 class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate),
     OnMapReadyCallback {
 
-    private val viewModel by viewModels<MainVM>()
+    private val viewModel by activityViewModels<MainVM>()
 
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
 
@@ -56,6 +56,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     private var job: Job? = null
 
     private lateinit var reviewAdapter: ReviewAdapter
+    private lateinit var placePhotosAdapter: PlacePhotosAdapter
 
     private var firstInit = true
 
@@ -68,10 +69,9 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         autocompleteFragment.setHint(getString(R.string.search))
 
         reviewAdapter = ReviewAdapter()
+        placePhotosAdapter = PlacePhotosAdapter()
 
         firstInit = savedInstanceState == null
-
-        internetObserver = InternetUtil(requireContext())
 
         checkLocationPermission()
     }
@@ -204,9 +204,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             }
         }
 
-
-
-        binding.placeInfo.reviewsList.adapter = reviewAdapter
+        initViewPager()
 
         binding.directionsChoosing.originButton.setOnClickListener {
             viewModel.requireGoogleMapUtil().currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
@@ -249,24 +247,43 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         observe()
     }
 
+    private fun initViewPager() {
+        binding.placeInfo.viewpager.adapter = PlaceTabsAdapter(childFragmentManager, lifecycle)
+
+        binding.placeInfo.tabs.addOnTabSelectedListener(object: TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                if(tab != null) {
+                    binding.placeInfo.viewpager.currentItem = tab.position
+                }
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+        })
+
+        binding.placeInfo.viewpager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                binding.placeInfo.tabs.selectTab(binding.placeInfo.tabs.getTabAt(position))
+            }
+        })
+    }
+
     private fun observe() {
         viewModel.placeData.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
                     binding.placeInfo.progressBar.visibility = View.VISIBLE
-                    binding.placeInfo.placeInfoContainer.visibility = View.GONE
 
                     binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                     binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
                 }
                 is Result.Success -> {
                     binding.placeInfo.progressBar.visibility = View.GONE
-                    binding.placeInfo.placeInfoContainer.visibility = View.VISIBLE
 
                     val place = it.value
-                    Log.w("MapsActivity", "place found: ${place}")
-
-                    setCurrentPlaceData(place)
+                    Log.w("MapsActivity", "place found fragment: ${place}")
                 }
                 is Result.Failure -> {
                     binding.placeInfo.progressBar.visibility = View.GONE
@@ -300,32 +317,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 }
             }
         }
-    }
-
-    private fun setCurrentPlaceData(place: PlaceInfo) {
-        binding.placeInfo.placeName.text = resources.getString(R.string.place_name, place.name)
-        binding.placeInfo.placeAddress.text = resources.getString(R.string.place_address, place.address)
-
-        if(place.phoneNumber != null)
-            binding.placeInfo.phoneNumber.text = resources.getString(R.string.place_phone, place.phoneNumber)
-        else
-            binding.placeInfo.phoneNumber.visibility = View.GONE
-
-        if(place.website != null) {
-            val data = resources.getString(R.string.place_website, place.website)
-            val content = SpannableString(data)
-            content.setSpan(UnderlineSpan(), 10, data.length, 0)
-            binding.placeInfo.placeWebsite.text = content
-        } else {
-            binding.placeInfo.placeWebsite.visibility = View.GONE
-        }
-
-        binding.placeInfo.placeTypes.text = resources.getString(R.string.place_types, place.types?.joinToString(", "))
-
-        binding.placeInfo.placeRating.rating = place.rating?.toFloat() ?: 0f
-        binding.placeInfo.ratingText.text = "%.1f".format(place.rating)
-
-        reviewAdapter.submitList(place.reviews)
     }
 
     private fun updateDirectionInfo(direction: Direction) {

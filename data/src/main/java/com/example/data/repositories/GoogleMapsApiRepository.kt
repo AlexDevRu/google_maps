@@ -18,7 +18,7 @@ class GoogleMapsApiRepository @Inject constructor(
 
     override fun getInfoByLocation(placeId: String): Single<PlaceInfo> {
         return service.getPlaceInfo(placeId).subscribeOn(Schedulers.io()).map {
-            Log.e("MapsActivity", it.toString())
+            //Log.e("MapsActivity", it.toString())
             return@map it.toModel()
         }
     }
