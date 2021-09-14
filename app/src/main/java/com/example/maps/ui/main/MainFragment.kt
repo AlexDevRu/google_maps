@@ -60,8 +60,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var placePhotosAdapter: PlacePhotosAdapter
 
-    private var firstInit = true
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         autocompleteFragment =
@@ -72,8 +70,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         reviewAdapter = ReviewAdapter()
         placePhotosAdapter = PlacePhotosAdapter()
-
-        firstInit = savedInstanceState == null
 
         checkLocationPermission()
     }
@@ -195,12 +191,11 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         binding.directionsButton.setOnClickListener {
             if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
                 binding.motionLayout.transitionToState(R.id.visibleDirections)
-                binding.motionLayout.setTransition(R.id.directionsTransition)
                 viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.DIRECTION
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
             } else {
-                binding.motionLayout.transitionToState(R.id.hiddenDirections)
-                binding.motionLayout.setTransition(R.id.directionsTransition)
+                binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
+                //binding.motionLayout.setTransition(R.id.directionsTransition)
                 viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.PLACE
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
             }
