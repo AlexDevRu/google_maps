@@ -60,9 +60,21 @@ dependencies {
     kapt "androidx.hilt:hilt-compiler:1.0.0"
 
 
+    // Rx java 2
     implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+
+
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+
+    // Room
+    def room_version = "2.4.0-alpha04"
+    api "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    implementation "androidx.room:room-rxjava2:2.3.0"
+
+    implementation "android.arch.persistence.room:rxjava2:1.1.1"
 
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
