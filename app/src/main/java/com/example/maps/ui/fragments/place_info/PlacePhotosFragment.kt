@@ -1,7 +1,6 @@
-package com.example.maps.ui.place_info
+package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import com.example.domain.common.Result
@@ -9,7 +8,7 @@ import com.example.domain.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.base.BaseFragment
-import com.example.maps.ui.main.MainVM
+import com.example.maps.ui.fragments.main.MainVM
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

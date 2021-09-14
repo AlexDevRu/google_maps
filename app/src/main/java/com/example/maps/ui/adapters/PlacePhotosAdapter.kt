@@ -7,12 +7,10 @@ import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.domain.models.place_info.Photo
 import com.example.maps.R
 import com.example.maps.databinding.ViewholderPhotoBinding
-import com.example.maps.mappers.toArg
-import com.example.maps.ui.main.MainFragmentDirections
+import com.example.maps.ui.fragments.main.MainFragmentDirections
 import com.example.maps.utils.extensions.url
 
 class PlacePhotosAdapter: ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {

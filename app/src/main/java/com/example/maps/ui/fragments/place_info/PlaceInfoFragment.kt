@@ -1,4 +1,4 @@
-package com.example.maps.ui.place_info
+package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
 import android.text.SpannableString
@@ -12,7 +12,7 @@ import com.example.maps.R
 import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.base.BaseFragment
-import com.example.maps.ui.main.MainVM
+import com.example.maps.ui.fragments.main.MainVM
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

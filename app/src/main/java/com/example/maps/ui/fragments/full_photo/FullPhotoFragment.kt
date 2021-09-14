@@ -1,4 +1,4 @@
-package com.example.maps.ui.full_photo
+package com.example.maps.ui.fragments.full_photo
 
 import android.os.Bundle
 import android.view.View

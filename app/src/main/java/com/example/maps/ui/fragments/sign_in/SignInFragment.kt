@@ -1,0 +1,93 @@
+package com.example.maps.ui.fragments.sign_in
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import com.example.maps.databinding.FragmentSignInBinding
+import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.authorization.AuthVM
+import com.example.maps.utils.extensions.hide
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
+import java.lang.Exception
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding::inflate) {
+
+    private val viewModel by viewModels<SignInVM>()
+    private val authVM by activityViewModels<AuthVM>()
+
+    @Inject
+    lateinit var client: GoogleSignInClient
+
+    private lateinit var signInResultLauncher: ActivityResultLauncher<Intent>
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if(Firebase.auth.currentUser != null) {
+            authVM.openProfile()
+            return
+        }
+
+        signInResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            this::handleSignInResult
+        )
+
+        binding.signInButton.setOnClickListener {
+            val signInIntent = client.signInIntent
+            signInResultLauncher.launch(signInIntent)
+        }
+
+        showError(viewModel.signInError)
+    }
+
+    private fun handleSignInResult(result: ActivityResult) {
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            firebaseAuthWithGoogle(account.idToken!!)
+        } catch (e: ApiException) {
+            Log.w("asd", "signInResult:failed code=" + e.statusCode)
+            showError(e)
+        }
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        Firebase.auth.signInWithCredential(credential)
+            .addOnCompleteListener(requireActivity()) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("asd", "signInWithCredential:success")
+                    authVM.openProfile()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("asd", "signInWithCredential:failure", task.exception)
+                    showError(task.exception)
+                }
+            }
+    }
+
+    private fun showError(exception: Exception?) {
+        if(exception == null) {
+            binding.signInError.hide()
+            return
+        }
+        viewModel.signInError = exception
+        binding.signInError.text = exception.message
+    }
+}

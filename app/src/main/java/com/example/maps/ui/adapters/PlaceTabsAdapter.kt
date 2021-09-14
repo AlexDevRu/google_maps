@@ -4,8 +4,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.maps.ui.place_info.PlaceInfoFragment
-import com.example.maps.ui.place_info.PlacePhotosFragment
+import com.example.maps.ui.fragments.place_info.PlaceInfoFragment
+import com.example.maps.ui.fragments.place_info.PlacePhotosFragment
 
 class PlaceTabsAdapter(fragmentManager: FragmentManager, lifeCycle: Lifecycle):
     FragmentStateAdapter(fragmentManager, lifeCycle) {

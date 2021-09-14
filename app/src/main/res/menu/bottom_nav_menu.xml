@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mainFragment"
+        android:title="@string/main"
+        android:icon="@drawable/ic_baseline_room_24"/>
+    <item
+        android:id="@+id/markdownsFragment"
+        android:title="@string/markdowns"
+        android:icon="@drawable/ic_baseline_bookmark_24"/>
+    <item
+        android:id="@+id/authFragment"
+        android:title="@string/profile"
+        android:icon="@drawable/ic_baseline_person_24"/>
+</menu>

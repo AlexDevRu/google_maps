@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "123682947000",
+    "project_id": "vaulted-bus-325207",
+    "storage_bucket": "vaulted-bus-325207.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123682947000:android:69c012a9e52cd739b0594d",
+        "android_client_info": {
+          "package_name": "com.example.maps.gms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123682947000-3cjp49o4oud85k60au7p0t9b5m3bof9a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.maps.gms",
+            "certificate_hash": "39138626ed482be280f6b757c199b9caf8874779"
+          }
+        },
+        {
+          "client_id": "123682947000-5tqfu54kfhj3l8s4v6totgn3ohh4rbjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPzvCydsommNcu0fTCa2m4Hf1hSNb5OX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123682947000-5tqfu54kfhj3l8s4v6totgn3ohh4rbjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

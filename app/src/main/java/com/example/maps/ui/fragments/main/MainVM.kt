@@ -1,4 +1,4 @@
-package com.example.maps.ui.main
+package com.example.maps.ui.fragments.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
