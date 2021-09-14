@@ -12,8 +12,10 @@ import com.example.domain.models.Location
 import com.example.domain.models.directions.Direction
 import com.example.maps.utils.GoogleMapUtil
 import com.google.android.libraries.places.api.model.Place
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,20 +29,34 @@ class MainVM @Inject constructor(app: Application, private val googleMapsApiRepo
     private val _direction = MutableLiveData<Result<Direction>>()
     val direction: LiveData<Result<Direction>> = _direction
 
+    private var placeInfo: Single<PlaceInfo>? = null
+    private var placeInfoSubscriber: Disposable? = null
+
+    var currentPlaceId: String? = null
+        private set
+
 
     val googleMapUtil = GoogleMapUtil(app)
 
     fun getInfoByLocation(placeId: String) {
+        currentPlaceId = placeId
+
         _placeData.value = Result.Loading()
-        compositeDisposable.add(
-            googleMapsApiRepository.getInfoByLocation(placeId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    _placeData.value = Result.Success(it)
-                }, {
-                    _placeData.value = Result.Failure(it)
-                })
-        )
+        placeInfo = googleMapsApiRepository.getInfoByLocation(placeId)
+
+        placeInfoSubscriber?.dispose()
+        placeInfoSubscriber = placeInfo!!.observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                _placeData.value = Result.Success(it)
+            }, {
+                _placeData.value = Result.Failure(it)
+            })
+        compositeDisposable.add(placeInfoSubscriber!!)
+    }
+
+    fun retry() {
+        if(currentPlaceId != null)
+            getInfoByLocation(currentPlaceId!!)
     }
 
     fun getDirection(origin: Location, destination: Location) {

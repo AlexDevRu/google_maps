@@ -14,7 +14,7 @@ class ReviewAdapter: ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewD
     inner class ReviewViewHolder(private val binding: ViewHolderReviewBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(review: Review) {
             binding.username.text = review.authorName
-            binding.rating.rating = review.rating.toFloat()
+            binding.rating.rating = review.rating?.toFloat() ?: 0f
             binding.ratingText.text = review.rating.toString()
             binding.reviewText.text = review.text
             binding.relativeTime.text = review.relativeTimeDescription

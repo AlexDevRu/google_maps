@@ -9,5 +9,22 @@
         android:id="@+id/mainFragment"
         android:name="com.example.maps.ui.main.MainFragment"
         tools:layout="@layout/fragment_main"
-        android:label="MainFragment" />
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_mainFragment_to_fullPhotoFragment"
+            app:destination="@id/fullPhotoFragment">
+            <argument
+                android:name="photoUrl"
+                app:argType="string" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/fullPhotoFragment"
+        android:name="com.example.maps.ui.full_photo.FullPhotoFragment"
+        tools:layout="@layout/fragment_full_photo"
+        android:label="FullPhotoFragment">
+        <argument
+            android:name="photoUrl"
+            app:argType="string" />
+    </fragment>
 </navigation>

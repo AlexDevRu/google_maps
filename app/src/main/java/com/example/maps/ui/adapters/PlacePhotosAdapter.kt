@@ -2,6 +2,8 @@ package com.example.maps.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -9,16 +11,29 @@ import com.bumptech.glide.Glide
 import com.example.domain.models.place_info.Photo
 import com.example.maps.R
 import com.example.maps.databinding.ViewholderPhotoBinding
+import com.example.maps.mappers.toArg
+import com.example.maps.ui.main.MainFragmentDirections
+import com.example.maps.utils.extensions.url
 
 class PlacePhotosAdapter: ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {
 
     inner class PlacePhotoViewHolder(private val binding: ViewholderPhotoBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(photo: Photo) {
             val apiKey = itemView.resources.getString(R.string.google_maps_key)
-            Glide.with(itemView.context)
-                .load("https://maps.googleapis.com/maps/api/place/photo?maxheight=${photo.height}&maxwidth=${photo.width}&photoreference=${photo.photoReference}&sensor=false&key=" + apiKey)
-                .placeholder(R.drawable.no_photo)
-                .into(binding.photo)
+            binding.photo.transitionName = photo.photoReference
+
+            val photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxheight=${photo.height}&maxwidth=${photo.width}&photoreference=${photo.photoReference}&sensor=false&key=" + apiKey
+
+            binding.photo.url(photoUrl)
+
+            binding.root.setOnClickListener {
+                val extras = FragmentNavigatorExtras(
+                    binding.photo to binding.photo.transitionName,
+                )
+
+                val action = MainFragmentDirections.actionMainFragmentToFullPhotoFragment(photoUrl)
+                itemView.findNavController().navigate(action, extras)
+            }
         }
     }
 

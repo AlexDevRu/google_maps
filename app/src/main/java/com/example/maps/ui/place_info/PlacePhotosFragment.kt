@@ -23,6 +23,12 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
         super.onViewCreated(view, savedInstanceState)
         photosAdapter = PlacePhotosAdapter()
         binding.placePhotosList.adapter = photosAdapter
+
+        binding.placePhotosList.retryHandler = {
+            mainVM.retry()
+        }
+        binding.placePhotosList.prepareToSharedTransition(this)
+
         observe()
     }
 
