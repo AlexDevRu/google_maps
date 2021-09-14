@@ -122,6 +122,9 @@ class GoogleMapUtil(
                 it.value.isVisible = isDirection
             }
             Log.e(TAG, "markerMode direction: ${isDirection}")
+            if(isDirection && placeMarker != null) {
+                createDestinationMarker(placeMarker!!.position)
+            }
             printInfo()
         }
 
