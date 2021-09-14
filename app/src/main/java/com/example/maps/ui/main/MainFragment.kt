@@ -25,7 +25,9 @@ import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
+import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.setHtml
+import com.example.maps.utils.extensions.show
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -135,16 +137,16 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     override fun onMapReady(googleMap: GoogleMap) {
         viewModel.googleMapUtil.initMap(googleMap)
 
-        if (viewModel.requireGoogleMapUtil().checkCoarseAndFineLocationPermissions()) {
+        if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
 
             if(viewModel.googleMapUtil.currentCameraPosition == null)
                 getDeviceLocation()
             else
-                viewModel.requireGoogleMapUtil().moveCamera(
+                viewModel.googleMapUtil.moveCamera(
                     viewModel.googleMapUtil.currentCameraPosition!!
                 )
 
-            viewModel.requireGoogleMapUtil().setDefaultSettings()
+            viewModel.googleMapUtil.setDefaultSettings()
 
             initViews()
         }
@@ -158,9 +160,9 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             getDeviceLocation()
         }
 
-        viewModel.requireGoogleMapUtil().initTouchEvents()
+        viewModel.googleMapUtil.initTouchEvents()
 
-        viewModel.requireGoogleMapUtil().mapClickHandler = {
+        viewModel.googleMapUtil.mapClickHandler = {
             viewModel.getInfoByLocation(it)
         }
 
@@ -191,15 +193,15 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
 
         binding.directionsButton.setOnClickListener {
-            if(viewModel.requireGoogleMapUtil().markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
+            if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
                 binding.motionLayout.transitionToState(R.id.visibleDirections)
                 binding.motionLayout.setTransition(R.id.directionsTransition)
-                viewModel.requireGoogleMapUtil().markerMode = GoogleMapUtil.MAP_MODE.DIRECTION
+                viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.DIRECTION
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
             } else {
                 binding.motionLayout.transitionToState(R.id.hiddenDirections)
                 binding.motionLayout.setTransition(R.id.directionsTransition)
-                viewModel.requireGoogleMapUtil().markerMode = GoogleMapUtil.MAP_MODE.PLACE
+                viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.PLACE
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
             }
         }
@@ -207,7 +209,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         initViewPager()
 
         binding.directionsChoosing.originButton.setOnClickListener {
-            viewModel.requireGoogleMapUtil().currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
+            viewModel.googleMapUtil.currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
             autocompleteFragment.startActivity(
                 Autocomplete.IntentBuilder(
                 AutocompleteActivityMode.FULLSCREEN, listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
@@ -215,29 +217,29 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
 
         binding.directionsChoosing.destinationButton.setOnClickListener {
-            viewModel.requireGoogleMapUtil().currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.DESTINATION
+            viewModel.googleMapUtil.currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.DESTINATION
         }
 
         binding.directionsChoosing.buildDirectionButton.setOnClickListener {
-            if(viewModel.requireGoogleMapUtil().origin != null && viewModel.requireGoogleMapUtil().destination != null) {
-                val originLocation = viewModel.requireGoogleMapUtil().origin!!.position.toModel()
-                val destinationLocation = viewModel.requireGoogleMapUtil().destination!!.position.toModel()
+            if(viewModel.googleMapUtil.origin != null && viewModel.googleMapUtil.destination != null) {
+                val originLocation = viewModel.googleMapUtil.origin!!.position.toModel()
+                val destinationLocation = viewModel.googleMapUtil.destination!!.position.toModel()
                 viewModel.getDirection(originLocation, destinationLocation)
             }
         }
 
-        viewModel.requireGoogleMapUtil().originChangeListener = {
-            if(viewModel.requireGoogleMapUtil().origin != null) {
-                val address = viewModel.requireGoogleMapUtil().getAddress(viewModel.requireGoogleMapUtil().origin!!.position)
+        viewModel.googleMapUtil.originChangeListener = {
+            if(viewModel.googleMapUtil.origin != null) {
+                val address = viewModel.googleMapUtil.getAddress(viewModel.googleMapUtil.origin!!.position)
                 binding.directionsChoosing.originButton.text = address?.getAddressLine(0)
             } else {
                 binding.directionsChoosing.originButton.text = getString(R.string.choose_origin)
             }
         }
 
-        viewModel.requireGoogleMapUtil().destinationChangeListener = {
-            if(viewModel.requireGoogleMapUtil().destination != null) {
-                val address = viewModel.requireGoogleMapUtil().getAddress(viewModel.requireGoogleMapUtil().destination!!.position)
+        viewModel.googleMapUtil.destinationChangeListener = {
+            if(viewModel.googleMapUtil.destination != null) {
+                val address = viewModel.googleMapUtil.getAddress(viewModel.googleMapUtil.destination!!.position)
                 binding.directionsChoosing.destinationButton.text = address?.getAddressLine(0)
             } else {
                 binding.directionsChoosing.originButton.text = getString(R.string.choose_destination)
@@ -274,19 +276,21 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         viewModel.placeData.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-                    binding.placeInfo.progressBar.visibility = View.VISIBLE
+                    binding.placeInfo.progressBar.show()
+                    binding.placeInfo.iconArrowUp.hide()
 
                     binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                     binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
                 }
                 is Result.Success -> {
-                    binding.placeInfo.progressBar.visibility = View.GONE
+                    binding.placeInfo.progressBar.hide()
+                    binding.placeInfo.iconArrowUp.show()
 
                     val place = it.value
                     Log.w("MapsActivity", "place found fragment: ${place}")
                 }
                 is Result.Failure -> {
-                    binding.placeInfo.progressBar.visibility = View.GONE
+                    binding.placeInfo.progressBar.hide()
                     Log.e("MapsActivity", "place found exception: ${it.throwable.message}")
                     showSnackBar(it.throwable.message.orEmpty())
                 }
@@ -296,19 +300,19 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         viewModel.direction.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-                    binding.directionsChoosing.duration.visibility = View.GONE
-                    binding.directionsChoosing.distance.visibility = View.GONE
-                    binding.directionsChoosing.progressBar.visibility = View.VISIBLE
+                    binding.directionsChoosing.duration.hide()
+                    binding.directionsChoosing.distance.hide()
+                    binding.directionsChoosing.progressBar.show()
                 }
                 is Result.Success -> {
-                    binding.directionsChoosing.duration.visibility = View.VISIBLE
-                    binding.directionsChoosing.distance.visibility = View.VISIBLE
-                    binding.directionsChoosing.progressBar.visibility = View.GONE
+                    binding.directionsChoosing.duration.show()
+                    binding.directionsChoosing.distance.show()
+                    binding.directionsChoosing.progressBar.hide()
 
                     val direction = it.value
                     Log.w("MapsActivity", "direction found: ${direction}")
 
-                    viewModel.requireGoogleMapUtil().createDirection(direction)
+                    viewModel.googleMapUtil.createDirection(direction)
                     updateDirectionInfo(direction)
                 }
                 is Result.Failure -> {
@@ -343,16 +347,16 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         Log.d(TAG, "getDeviceLocation: getting the devices current location")
 
         try {
-            if (viewModel.requireGoogleMapUtil().checkCoarseAndFineLocationPermissions()) {
-                val location = viewModel.requireGoogleMapUtil().fusedLocationProviderClient.lastLocation
+            if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
+                val location = viewModel.googleMapUtil.fusedLocationProviderClient.lastLocation
                 location.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful) {
                         val currentLocation = task.result
                         Log.d(TAG, "onComplete: found location! ${currentLocation}")
 
                         if(currentLocation != null) {
-                            if(viewModel.requireGoogleMapUtil().origin == null) {
-                                viewModel.requireGoogleMapUtil().createOriginMarker(LatLng(currentLocation.latitude, currentLocation.longitude))
+                            if(viewModel.googleMapUtil.origin == null) {
+                                viewModel.googleMapUtil.createOriginMarker(LatLng(currentLocation.latitude, currentLocation.longitude))
                             }
 
                             if(internetObserver.isInternetOn()) {
@@ -361,12 +365,12 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                                 showSnackBar("device location not found. Turn on the internet")
                             }
 
-                            viewModel.requireGoogleMapUtil().moveCamera(
+                            viewModel.googleMapUtil.moveCamera(
                                 LatLng(currentLocation.latitude, currentLocation.longitude)
                             )
 
                         } else {
-                            viewModel.requireGoogleMapUtil().getDeviceLocation()
+                            viewModel.googleMapUtil.getDeviceLocation()
                         }
 
                     } else {
