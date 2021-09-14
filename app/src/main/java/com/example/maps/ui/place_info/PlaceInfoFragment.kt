@@ -26,6 +26,11 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         super.onViewCreated(view, savedInstanceState)
         reviewAdapter = ReviewAdapter()
         binding.reviewsList.adapter = reviewAdapter
+
+        binding.reviewsList.retryHandler = {
+            mainVM.retry()
+        }
+
         observe()
         Log.e("MapsActivity", "${mainVM.placeData}")
     }
@@ -38,6 +43,7 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
                 }
                 is Result.Success -> {
                     binding.placeInfoContainer.visibility = View.VISIBLE
+                    binding.reviewsList.isLoading = false
 
                     val place = it.value
                     Log.w("MapsActivity", "place found: ${place}")
