@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="errorMessagePhotoItemStyle">
+        <item name="android:padding">10dp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="loadPhotoErrorButtonStyle">
+        <item name="android:backgroundTint">@color/red</item>
+    </style>
+</resources>
