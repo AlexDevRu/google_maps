@@ -5,19 +5,19 @@ import com.example.domain.models.place_info.PlaceInfo
 
 fun PlaceInfoResponse.toModel(): PlaceInfo {
     return PlaceInfo(
-        address = result.formatted_address,
-        phoneNumber = result.formatted_phone_number,
-        name = result.name,
-        openingHours = result.opening_hours?.toModel(),
-        photos = result.photos?.map { it.toModel() },
-        placeId = result.place_id,
-        rating = result.rating,
-        reviews = result.reviews?.map { it.toModel() },
-        types = result.types,
-        url = result.url,
-        userRatingsTotal = result.user_ratings_total,
-        utcOffset = result.utc_offset,
-        website = result.website
+        address = result?.formatted_address,
+        phoneNumber = result?.formatted_phone_number,
+        name = result?.name,
+        openingHours = result?.opening_hours?.toModel(),
+        photos = result?.photos?.map { it.toModel() },
+        placeId = result?.place_id,
+        rating = result?.rating,
+        reviews = result?.reviews?.map { it.toModel() },
+        types = result?.types,
+        url = result?.url,
+        userRatingsTotal = result?.user_ratings_total,
+        utcOffset = result?.utc_offset,
+        website = result?.website
     )
 }
 
@@ -33,15 +33,15 @@ fun Photo.toModel(): com.example.domain.models.place_info.Photo {
 fun OpeningHours.toModel(): com.example.domain.models.place_info.OpeningHours {
     return com.example.domain.models.place_info.OpeningHours(
         openNow = open_now,
-        periods = periods.map { it.toModel() },
+        periods = periods?.map { it.toModel() },
         weekdayText = weekday_text
     )
 }
 
 fun Period.toModel(): com.example.domain.models.place_info.Period {
     return com.example.domain.models.place_info.Period(
-        close = close.toModel(),
-        open = open.toModel()
+        close = close?.toModel(),
+        open = open?.toModel()
     )
 }
 
