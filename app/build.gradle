@@ -10,6 +10,8 @@ apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'dagger.hilt.android.plugin'
 
+apply plugin: 'com.google.gms.google-services'
+
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
@@ -58,8 +60,7 @@ android {
 dependencies {
     implementation project(path: ':domain')
     implementation project(path: ':data')
-//    implementation 'com.google.android.gms:play-services-maps:17.0.1'
-//    implementation 'com.google.android.gms:play-services-location:18.0.0'
+
     // GMS
     gmsImplementation 'com.google.android.libraries.places:places:2.4.0'
 
@@ -77,8 +78,12 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
 
-    //implementation "androidx.lifecycle:lifecycle-extensions:2.3.1"
-    //implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    // Firebase BOM
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBoom")
+
+    // Firebase Auth
+    implementation "com.google.android.gms:play-services-auth:$playServicesAuth"
+    implementation 'com.google.firebase:firebase-auth-ktx'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.6.0'
