@@ -278,6 +278,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 is Result.Loading -> {
                     binding.placeInfo.progressBar.show()
                     binding.placeInfo.iconArrowUp.hide()
+                    binding.placeInfo.viewpager.hide()
+                    binding.placeInfo.tabs.hide()
 
                     binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                     binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
@@ -285,6 +287,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 is Result.Success -> {
                     binding.placeInfo.progressBar.hide()
                     binding.placeInfo.iconArrowUp.show()
+                    binding.placeInfo.viewpager.show()
+                    binding.placeInfo.tabs.show()
 
                     val place = it.value
                     Log.w("MapsActivity", "place found fragment: ${place}")

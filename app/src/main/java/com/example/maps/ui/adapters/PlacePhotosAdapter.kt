@@ -17,6 +17,7 @@ class PlacePhotosAdapter: ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHo
             val apiKey = itemView.resources.getString(R.string.google_maps_key)
             Glide.with(itemView.context)
                 .load("https://maps.googleapis.com/maps/api/place/photo?maxheight=${photo.height}&maxwidth=${photo.width}&photoreference=${photo.photoReference}&sensor=false&key=" + apiKey)
+                .placeholder(R.drawable.no_photo)
                 .into(binding.photo)
         }
     }
