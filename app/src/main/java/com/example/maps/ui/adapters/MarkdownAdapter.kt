@@ -8,7 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.domain.models.Markdown
 import com.example.maps.databinding.ViewholderMarkdownBinding
 
-class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit)): ListAdapter<Markdown, MarkdownAdapter.MarkdownViewHolder>(MarkdownDiffUtil()) {
+class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
+    : ListAdapter<Markdown, MarkdownAdapter.MarkdownViewHolder>(MarkdownDiffUtil()) {
 
     inner class MarkdownViewHolder(private val binding: ViewholderMarkdownBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(markdown: Markdown) {
@@ -16,8 +17,8 @@ class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit)): ListAdap
             binding.placeAddress.text = markdown.address
             binding.deleteButton.setOnClickListener {
                 deleteHandler(markdown)
-                notifyItemRemoved(adapterPosition)
-                notifyItemRangeChanged(adapterPosition, itemCount)
+                notifyItemRemoved(absoluteAdapterPosition)
+                notifyItemRangeChanged(absoluteAdapterPosition, itemCount)
             }
         }
     }
@@ -25,7 +26,7 @@ class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit)): ListAdap
     companion object {
         class MarkdownDiffUtil : DiffUtil.ItemCallback<Markdown>() {
             override fun areItemsTheSame(oldItem: Markdown, newItem: Markdown): Boolean {
-                return oldItem.id == newItem.id
+                return oldItem.placeId == newItem.placeId
             }
 
             override fun areContentsTheSame(oldItem: Markdown, newItem: Markdown): Boolean {

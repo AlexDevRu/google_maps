@@ -5,6 +5,7 @@ import android.text.SpannableString
 import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import com.example.domain.common.Result
 import com.example.domain.models.place_info.PlaceInfo
@@ -32,17 +33,16 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         }
 
         observe()
-        Log.e("MapsActivity", "${mainVM.placeData}")
     }
 
     private fun observe() {
         mainVM.placeData.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-                    binding.placeInfoContainer.visibility = View.GONE
+                    binding.root.visibility = View.GONE
                 }
                 is Result.Success -> {
-                    binding.placeInfoContainer.visibility = View.VISIBLE
+                    binding.root.visibility = View.VISIBLE
                     binding.reviewsList.isLoading = false
 
                     val place = it.value
@@ -51,6 +51,16 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
                     setCurrentPlaceData(place)
                 }
             }
+        }
+
+        mainVM.currentPlaceFavorite.observe(viewLifecycleOwner) {
+            Log.e("MapsActivity", "currentPlaceFavorite observer $it")
+            val color = if(it) R.color.red else R.color.black
+            binding.markdownButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
+        }
+
+        binding.markdownButton.setOnClickListener {
+            mainVM.toggleFavoriteCurrentPlace()
         }
     }
 

@@ -1,5 +1,7 @@
 package com.example.domain.models.place_info
 
+import com.example.domain.models.Location
+
 data class PlaceInfo(
     val address: String? = null,
     val phoneNumber: String? = null,
@@ -13,5 +15,6 @@ data class PlaceInfo(
     val url: String? = null,
     val userRatingsTotal: Int? = null,
     val utcOffset: Int? = null,
-    val website: String? = null
+    val website: String? = null,
+    val location: Location? = null
 )

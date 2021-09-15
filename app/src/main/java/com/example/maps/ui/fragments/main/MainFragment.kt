@@ -149,8 +149,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun initViews() {
-        if(viewModel.googleMapUtil.placeMarker == null && viewModel.googleMapUtil.markerMode != GoogleMapUtil.MAP_MODE.DIRECTION)
-            binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
+        /*if(viewModel.googleMapUtil.placeMarker == null && viewModel.googleMapUtil.markerMode != GoogleMapUtil.MAP_MODE.DIRECTION)
+            binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)*/
 
         binding.myLocationButton.setOnClickListener {
             getDeviceLocation()
@@ -182,23 +182,25 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
 
 
-        if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
+        /*if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
             binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
         } else {
             binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
-        }
+        }*/
 
-        binding.directionsButton.setOnClickListener {
+        /*binding.directionsButton.setOnClickListener {
             if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
                 binding.motionLayout.transitionToState(R.id.visibleDirections)
                 viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.DIRECTION
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
             } else {
                 binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
-                //binding.motionLayout.setTransition(R.id.directionsTransition)
                 viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.PLACE
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
             }
+        }*/
+        binding.directionsButton.setOnClickListener {
+            viewModel.toggleMapMode()
         }
 
         initViewPager()
@@ -284,9 +286,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                     binding.placeInfo.iconArrowUp.show()
                     binding.placeInfo.viewpager.show()
                     binding.placeInfo.tabs.show()
-
-                    val place = it.value
-                    Log.w("MapsActivity", "place found fragment: ${place}")
                 }
                 is Result.Failure -> {
                     binding.placeInfo.progressBar.hide()
@@ -318,6 +317,21 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                     Log.e("MapsActivity", "direction exception: ${it.throwable.message}")
                     showSnackBar(it.throwable.message.orEmpty())
                 }
+            }
+        }
+
+        viewModel.currentMapMode.observe(viewLifecycleOwner) {
+            if(it == GoogleMapUtil.MAP_MODE.PLACE) {
+                if(viewModel.currentPlaceId == null)
+                    binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
+                else {
+                    binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
+                    binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
+                }
+                binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
+            } else {
+                binding.motionLayout.transitionToState(R.id.visibleDirections)
+                binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
             }
         }
     }

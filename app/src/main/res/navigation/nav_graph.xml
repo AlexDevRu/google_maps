@@ -35,6 +35,10 @@
     <fragment
         android:id="@+id/markdownFragment"
         android:name="com.example.maps.ui.fragments.markdowns.MarkdownsFragment"
-        android:label="MarkdownFragment" />
+        android:label="MarkdownFragment" >
+        <action
+            android:id="@+id/action_markdownFragment_to_authFragment"
+            app:destination="@id/authFragment" />
+    </fragment>
 
 </navigation>

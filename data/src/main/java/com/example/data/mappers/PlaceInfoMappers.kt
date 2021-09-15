@@ -17,7 +17,8 @@ fun PlaceInfoResponse.toModel(): PlaceInfo {
         url = result?.url,
         userRatingsTotal = result?.user_ratings_total,
         utcOffset = result?.utc_offset,
-        website = result?.website
+        website = result?.website,
+        location = result?.geometry?.location?.toModel()
     )
 }
 

@@ -5,7 +5,7 @@ import com.example.domain.models.Markdown
 
 fun MarkdownEntity.toModel(): Markdown {
     return Markdown(
-        id = id,
+        placeId = placeId,
         name = name,
         address = address,
         location = location
@@ -14,7 +14,7 @@ fun MarkdownEntity.toModel(): Markdown {
 
 fun Markdown.fromModel(): MarkdownEntity {
     return MarkdownEntity(
-        id = id,
+        placeId = placeId,
         name = name,
         address = address,
         location = location

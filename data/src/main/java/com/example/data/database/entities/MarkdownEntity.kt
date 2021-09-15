@@ -8,7 +8,7 @@ import java.util.*
 @Entity(tableName = "markdowns")
 data class MarkdownEntity(
     @PrimaryKey
-    val id: UUID = UUID.randomUUID(),
+    val placeId: String,
     val name: String? = null,
     val address: String? = null,
     val location: Location? = null

@@ -1,5 +1,6 @@
 package com.example.maps.ui.fragments.markdowns
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -16,8 +17,8 @@ class MarkdownsVM @Inject constructor(
     private val repository: IMarkdownRepository
 ): ViewModel() {
 
-    private val _markdowns = MutableLiveData<Result<List<Markdown>>>()
-    val markdowns: LiveData<Result<List<Markdown>>> = _markdowns
+    private val _markdowns = MutableLiveData<Result<MutableList<Markdown>>>()
+    val markdowns: LiveData<Result<MutableList<Markdown>>> = _markdowns
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -26,7 +27,7 @@ class MarkdownsVM @Inject constructor(
         compositeDisposable.add(
             repository.getMarkdowns().observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    _markdowns.value = Result.Success(it)
+                    _markdowns.value = Result.Success(it.toMutableList())
                 }, {
                     _markdowns.value = Result.Failure(it)
                 })
@@ -34,7 +35,17 @@ class MarkdownsVM @Inject constructor(
     }
 
     fun deleteMarkdown(markdown: Markdown) {
-        repository.deleteMarkdownById(markdown.id)
+        compositeDisposable.add(
+            repository.deleteMarkdownById(markdown.placeId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    Log.e("MapsActivity", "delete successfully")
+                }, {
+                    Log.e("MapsActivity", "exception delete ${it.message}")
+                })
+        )
+        (_markdowns.value as Result.Success).value.remove(markdown)
+
     }
 
     override fun onCleared() {
