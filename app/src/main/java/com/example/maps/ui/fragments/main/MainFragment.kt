@@ -402,10 +402,10 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun getDeviceAddress(currentLocation: Location) {
-        job?.cancel()
+        /*job?.cancel()
         job = lifecycleScope.launch(Dispatchers.IO) {
             val currentAddress = viewModel.googleMapUtil.getAddress(currentLocation)
             autocompleteFragment.setCountry(currentAddress?.countryCode)
-        }
+        }*/
     }
 }

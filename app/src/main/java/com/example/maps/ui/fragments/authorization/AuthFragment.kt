@@ -31,14 +31,14 @@ class AuthFragment: BaseFragment<FragmentAuthBinding>(FragmentAuthBinding::infla
 
     private fun observe() {
         viewModel.openProfile.observe(viewLifecycleOwner) {
-            if(it) {
+            if(it && navController.currentDestination?.id == R.id.signInFragment) {
                 val action = SignInFragmentDirections.actionSignInFragmentToProfileFragment()
                 navController.navigate(action)
             }
         }
 
         viewModel.openSignIn.observe(viewLifecycleOwner) {
-            if(it) {
+            if(it && navController.currentDestination?.id == R.id.profileFragment) {
                 val action = ProfileFragmentDirections.actionProfileFragmentToSignInFragment()
                 navController.navigate(action)
             }

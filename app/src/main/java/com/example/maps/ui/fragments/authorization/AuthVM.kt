@@ -13,19 +13,21 @@ import javax.inject.Inject
 class AuthVM @Inject constructor(
     private val client: GoogleSignInClient
 ): ViewModel() {
-    private val _openProfile = MutableLiveData<Boolean>()
+    private val _openProfile = MutableLiveData(false)
     val openProfile: LiveData<Boolean> = _openProfile
 
-    private val _openSignIn = MutableLiveData<Boolean>()
+    private val _openSignIn = MutableLiveData(false)
     val openSignIn: LiveData<Boolean> = _openSignIn
 
     fun openProfile() {
+        _openSignIn.value = false
         _openProfile.value = true
     }
 
     fun openSignIn() {
         Firebase.auth.signOut()
         client.signOut()
+        _openProfile.value = false
         _openSignIn.value = true
     }
 }
