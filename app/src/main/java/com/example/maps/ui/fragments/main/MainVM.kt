@@ -13,6 +13,7 @@ import com.example.domain.models.directions.Direction
 import com.example.domain.models.place_info.PlaceInfo
 import com.example.domain.repositories.IMarkdownRepository
 import com.example.maps.utils.GoogleMapUtil
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Flowable
@@ -117,19 +118,30 @@ class MainVM @Inject constructor(
     }
 
     fun setPlace(place: Place) {
+        setPlace(place.id!!, place.latLng!!)
+    }
+
+    fun setPlace(markdown: Markdown) {
+        if(markdown.location == null) return
+
+        val latLng = LatLng(markdown.location!!.lat, markdown.location!!.lng)
+        setPlace(markdown.placeId, latLng)
+    }
+
+    private fun setPlace(placeId: String, latLng: LatLng) {
         when(googleMapUtil.markerMode) {
             GoogleMapUtil.MAP_MODE.PLACE -> {
-                googleMapUtil.createPlaceMarker(place.latLng!!)
-                getInfoByLocation(place.id!!)
+                googleMapUtil.createPlaceMarker(latLng)
+                getInfoByLocation(placeId)
             }
             GoogleMapUtil.MAP_MODE.DIRECTION -> {
                 if(googleMapUtil.currentDirectionMarker == GoogleMapUtil.DIRECTION_MARKER.ORIGIN)
-                    googleMapUtil.createOriginMarker(place.latLng!!)
+                    googleMapUtil.createOriginMarker(latLng)
                 else
-                    googleMapUtil.createDestinationMarker(place.latLng!!)
+                    googleMapUtil.createDestinationMarker(latLng)
             }
         }
-        googleMapUtil.moveCamera(place.latLng!!)
+        googleMapUtil.moveCamera(latLng)
     }
 
     fun toggleFavoriteCurrentPlace() {

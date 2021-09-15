@@ -2,11 +2,14 @@ package com.example.maps.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.domain.models.Markdown
 import com.example.maps.databinding.ViewholderMarkdownBinding
+import com.example.maps.mappers.toArg
+import com.example.maps.ui.fragments.markdowns.MarkdownsFragmentDirections
 
 class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
     : ListAdapter<Markdown, MarkdownAdapter.MarkdownViewHolder>(MarkdownDiffUtil()) {
@@ -19,6 +22,10 @@ class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
                 deleteHandler(markdown)
                 notifyItemRemoved(absoluteAdapterPosition)
                 notifyItemRangeChanged(absoluteAdapterPosition, itemCount)
+            }
+            binding.root.setOnClickListener {
+                val action = MarkdownsFragmentDirections.actionMarkdownFragmentToMainFragment(markdown.toArg())
+                itemView.findNavController().navigate(action)
             }
         }
     }

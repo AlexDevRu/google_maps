@@ -3,7 +3,6 @@ package com.example.maps.ui.fragments.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
@@ -11,6 +10,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
 import com.example.domain.common.Result
 import com.example.domain.models.directions.Direction
@@ -52,6 +52,10 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var placePhotosAdapter: PlacePhotosAdapter
 
+    private val args: MainFragmentArgs by navArgs()
+
+    private var firstInit = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         autocompleteFragment =
@@ -62,6 +66,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         reviewAdapter = ReviewAdapter()
         placePhotosAdapter = PlacePhotosAdapter()
+
+        firstInit = savedInstanceState == null
 
         checkLocationPermission()
     }
@@ -127,8 +133,12 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
 
+            if(firstInit && args.markdown != null) {
+                viewModel.setPlace(args.markdown!!.toModel())
+            }
+
             if(viewModel.googleMapUtil.currentCameraPosition == null) {
-                viewModel.googleMapUtil.getDeviceLocation() {
+                viewModel.googleMapUtil.getDeviceLocation {
                     val address = viewModel.googleMapUtil.getAddress(it)
                     autocompleteFragment.setCountry(address?.countryCode)
                 }
@@ -329,13 +339,5 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 }
             }
         }
-    }
-
-    private fun getDeviceAddress() {
-        /*job?.cancel()
-        job = lifecycleScope.launch(Dispatchers.IO) {
-            val currentAddress = viewModel.googleMapUtil.getAddress(currentLocation)
-            autocompleteFragment.setCountry(currentAddress?.countryCode)
-        }*/
     }
 }

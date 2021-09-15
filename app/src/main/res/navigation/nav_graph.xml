@@ -17,6 +17,11 @@
                 android:name="photoUrl"
                 app:argType="string" />
         </action>
+        <argument
+            android:name="markdown"
+            app:argType="com.example.maps.args.MarkdownArg"
+            android:defaultValue="@null"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/fullPhotoFragment"
@@ -39,6 +44,14 @@
         <action
             android:id="@+id/action_markdownFragment_to_authFragment"
             app:destination="@id/authFragment" />
+        <action
+            android:id="@+id/action_markdownFragment_to_mainFragment"
+            app:destination="@id/mainFragment">
+            <argument
+                android:name="markdown"
+                app:argType="com.example.maps.args.MarkdownArg"
+                app:nullable="true" />
+        </action>
     </fragment>
 
 </navigation>
