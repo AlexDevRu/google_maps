@@ -82,8 +82,6 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
             binding.placeWebsite.visibility = View.GONE
         }
 
-        binding.placeTypes.text = resources.getString(R.string.place_types, place.types?.joinToString(", "))
-
         binding.placeRating.rating = place.rating?.toFloat() ?: 0f
         binding.ratingText.text = if(place.rating != null) "%.1f".format(place.rating) else "0"
 
