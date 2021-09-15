@@ -8,11 +8,9 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.example.domain.common.Result
 import com.example.domain.models.directions.Direction
@@ -32,7 +30,6 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
@@ -40,9 +37,6 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -54,8 +48,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
 
     private val TAG = "MapsActivity"
-
-    private var job: Job? = null
 
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var placePhotosAdapter: PlacePhotosAdapter
@@ -135,8 +127,12 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
 
-            if(viewModel.googleMapUtil.currentCameraPosition == null)
-                getDeviceLocation()
+            if(viewModel.googleMapUtil.currentCameraPosition == null) {
+                viewModel.googleMapUtil.getDeviceLocation() {
+                    val address = viewModel.googleMapUtil.getAddress(it)
+                    autocompleteFragment.setCountry(address?.countryCode)
+                }
+            }
             else
                 viewModel.googleMapUtil.moveCamera(
                     viewModel.googleMapUtil.currentCameraPosition!!
@@ -149,11 +145,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun initViews() {
-        /*if(viewModel.googleMapUtil.placeMarker == null && viewModel.googleMapUtil.markerMode != GoogleMapUtil.MAP_MODE.DIRECTION)
-            binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)*/
-
         binding.myLocationButton.setOnClickListener {
-            getDeviceLocation()
+            viewModel.googleMapUtil.moveCameraToCurrentLocation()
         }
 
         viewModel.googleMapUtil.initTouchEvents()
@@ -181,24 +174,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
 
 
-
-        /*if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
-            binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
-        } else {
-            binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
-        }*/
-
-        /*binding.directionsButton.setOnClickListener {
-            if(viewModel.googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE) {
-                binding.motionLayout.transitionToState(R.id.visibleDirections)
-                viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.DIRECTION
-                binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
-            } else {
-                binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
-                viewModel.googleMapUtil.markerMode = GoogleMapUtil.MAP_MODE.PLACE
-                binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
-            }
-        }*/
         binding.directionsButton.setOnClickListener {
             viewModel.toggleMapMode()
         }
@@ -356,52 +331,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
     }
 
-    private fun getDeviceLocation() {
-        Log.d(TAG, "getDeviceLocation: getting the devices current location")
-
-        try {
-            if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
-                val location = viewModel.googleMapUtil.fusedLocationProviderClient.lastLocation
-                location.addOnCompleteListener(requireActivity()) { task ->
-                    if (task.isSuccessful) {
-                        val currentLocation = task.result
-                        Log.d(TAG, "onComplete: found location! ${currentLocation}")
-
-                        if(currentLocation != null) {
-                            if(viewModel.googleMapUtil.origin == null) {
-                                viewModel.googleMapUtil.createOriginMarker(LatLng(currentLocation.latitude, currentLocation.longitude))
-                            }
-
-                            if(internetObserver.isInternetOn()) {
-                                getDeviceAddress(currentLocation)
-                            } else {
-                                showSnackBar("device location not found. Turn on the internet")
-                            }
-
-                            viewModel.googleMapUtil.moveCamera(
-                                LatLng(currentLocation.latitude, currentLocation.longitude)
-                            )
-
-                        } else {
-                            viewModel.googleMapUtil.getDeviceLocation()
-                        }
-
-                    } else {
-                        Log.d(TAG, "onComplete: current location is null")
-                        Toast.makeText(
-                            requireContext(),
-                            "unable to get current location",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        } catch (e: SecurityException) {
-            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.message)
-        }
-    }
-
-    private fun getDeviceAddress(currentLocation: Location) {
+    private fun getDeviceAddress() {
         /*job?.cancel()
         job = lifecycleScope.launch(Dispatchers.IO) {
             val currentAddress = viewModel.googleMapUtil.getAddress(currentLocation)

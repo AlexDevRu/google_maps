@@ -6,10 +6,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.core.app.ActivityCompat
@@ -18,23 +17,21 @@ import com.example.domain.models.directions.Direction
 import com.example.maps.R
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
-import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse
-import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.PolyUtil
-import java.io.IOException
 
 
 class GoogleMapUtil(
     private val context: Context
 ) {
+
+    companion object {
+        private const val TAG = "MapsActivity"
+        private const val DEFAULT_ZOOM = 15f
+    }
 
     private var googleMap: GoogleMap? = null
 
@@ -60,14 +57,11 @@ class GoogleMapUtil(
     }
 
     fun printInfo() {
-        Log.w("MapsActivity", "markerMode: ${markerMode}")
-        Log.w("MapsActivity", "origin: ${origin?.position}")
-        Log.w("MapsActivity", "destination: ${destination?.position}")
-        Log.w("MapsActivity", "placeMarker: ${placeMarker?.position}")
+        Log.w(TAG, "markerMode: ${markerMode}")
+        Log.w(TAG, "origin: ${origin?.position}")
+        Log.w(TAG, "destination: ${destination?.position}")
+        Log.w(TAG, "placeMarker: ${placeMarker?.position}")
     }
-
-    private val TAG = "MapsActivity"
-    private val DEFAULT_ZOOM = 15f
 
     enum class MAP_MODE {
         DIRECTION, PLACE
@@ -93,9 +87,7 @@ class GoogleMapUtil(
         }
 
     var placeMarker: Marker? = null
-        private set(value) {
-            field = value
-        }
+        private set
 
     var origin: Marker? = null
         private set(value) {
@@ -108,6 +100,11 @@ class GoogleMapUtil(
             field = value
             destinationChangeListener?.invoke()
         }
+
+
+    var currentLocation: LatLng? = null
+        private set
+
 
     private val drivingDirection = hashMapOf<Polyline, Marker>()
 
@@ -130,19 +127,9 @@ class GoogleMapUtil(
 
     var currentDirectionMarker = DIRECTION_MARKER.DESTINATION
 
-
-    val fusedLocationProviderClient: FusedLocationProviderClient
-    private val placesClient: PlacesClient
+    private val fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
 
     var mapClickHandler: ((String) -> Unit)? = null
-
-    var hasMarkers: Boolean = false
-        private set
-
-    init {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-        placesClient = Places.createClient(context)
-    }
 
     fun moveCamera(latLng: LatLng, zoom: Float = DEFAULT_ZOOM) {
         Log.d(
@@ -192,11 +179,10 @@ class GoogleMapUtil(
         markerOptions.draggable(draggable)
         markerOptions.snippet(snippet)
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
-        hasMarkers = true
         return googleMap?.addMarker(markerOptions)
     }
 
-    private fun getLocationByKey(query: String) {
+    /*private fun getLocationByKey(query: String) {
         val geocoder = Geocoder(context)
         try {
             val list =  geocoder.getFromLocationName(query, 1)
@@ -209,7 +195,7 @@ class GoogleMapUtil(
         } catch (e: IOException) {
             Log.e(TAG, "getLocationByKey IOException: ${e.message}")
         }
-    }
+    }*/
 
     @SuppressLint("MissingPermission")
     fun setDefaultSettings(): Boolean {
@@ -248,15 +234,9 @@ class GoogleMapUtil(
         }
     }
 
-    fun getAddress(location: Location): Address? {
-        return getAddress(
-            LatLng(location.latitude, location.longitude)
-        )
-    }
-
     fun getAddress(latLng: LatLng): Address? {
-        if(!internetObserver.isInternetOn())
-            return null
+        /*if(!internetObserver.isInternetOn())
+            return null*/
 
         val list =  Geocoder(context)
             .getFromLocation(latLng.latitude, latLng.longitude, 1)
@@ -335,8 +315,8 @@ class GoogleMapUtil(
     }
 
     @SuppressLint("MissingPermission")
-    fun getDeviceLocation() {
-        val placeFields = listOf(Place.Field.LAT_LNG)
+    fun getDeviceLocation(deviceLocationChangedHandler: (LatLng) -> Unit) {
+        /*val placeFields = listOf(Place.Field.LAT_LNG)
         val request = FindCurrentPlaceRequest.builder(placeFields).build()
         if(checkCoarseAndFineLocationPermissions()) {
             placesClient.findCurrentPlace(request)
@@ -355,6 +335,45 @@ class GoogleMapUtil(
                         Log.e(TAG, "Place not found: " + exception.statusCode)
                     }
                 }
+        }*/
+
+        val locationRequest = LocationRequest().setInterval(5000).setFastestInterval(3000)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest).setAlwaysShow(true)
+
+        val locationSettingsResponseTask = LocationServices.getSettingsClient(context).checkLocationSettings(builder.build())
+
+        locationSettingsResponseTask.addOnCompleteListener {
+            try {
+                if (checkCoarseAndFineLocationPermissions()) {
+
+                    fusedLocationProviderClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
+                        override fun onLocationResult(locationResult: LocationResult?) {
+                            super.onLocationResult(locationResult)
+                            if(locationResult != null) {
+                                val lat = locationResult.lastLocation.latitude
+                                val lng = locationResult.lastLocation.longitude
+
+                                val newLocation = LatLng(lat, lng)
+                                if(currentLocation == null) {
+                                    moveCamera(newLocation)
+                                }
+                                currentLocation = newLocation
+                                deviceLocationChangedHandler(currentLocation!!)
+                            }
+                        }
+                    }, Looper.getMainLooper())
+
+                }
+
+            } catch (e: ApiException) {
+                Log.e(TAG, "getDeviceLocation: SecurityException: " + e.message)
+            }
         }
+    }
+
+    fun moveCameraToCurrentLocation() {
+        if(currentLocation != null) moveCamera(currentLocation!!)
     }
 }
