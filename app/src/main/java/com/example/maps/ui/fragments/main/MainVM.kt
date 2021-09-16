@@ -5,32 +5,39 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.data.repositories.GoogleMapsApiRepository
 import com.example.domain.common.Result
 import com.example.domain.models.Location
 import com.example.domain.models.Markdown
 import com.example.domain.models.directions.Direction
 import com.example.domain.models.place_info.PlaceInfo
-import com.example.domain.repositories.IMarkdownRepository
+import com.example.domain.use_cases.GetDirectionUseCase
+import com.example.domain.use_cases.GetInfoByLocationUseCase
+import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
+import com.example.domain.use_cases.markdowns.InsertMarkdownUseCase
+import com.example.domain.use_cases.markdowns.IsPlaceInMarkdownsUseCase
 import com.example.maps.utils.GoogleMapUtil
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.Flowable
-import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
 class MainVM @Inject constructor(
     app: Application,
-    private val googleMapsApiRepository: GoogleMapsApiRepository,
-    private val markdownRepository: IMarkdownRepository
+    private val getInfoByLocationUseCase: GetInfoByLocationUseCase,
+    private val getDirectionUseCase: GetDirectionUseCase,
+    private val isPlaceInMarkdownsUseCase: IsPlaceInMarkdownsUseCase,
+    private val insertMarkdownUseCase: InsertMarkdownUseCase,
+    private val deleteMarkdownByIdUseCase: DeleteMarkdownByIdUseCase
 ): AndroidViewModel(app) {
+
+    companion object {
+        private const val TAG = "MainVM"
+    }
 
     val googleMapUtil = GoogleMapUtil(app)
 
@@ -71,7 +78,7 @@ class MainVM @Inject constructor(
         currentPlaceId = placeId
 
         _placeData.value = Result.Loading()
-        placeInfo = googleMapsApiRepository.getInfoByLocation(placeId)
+        placeInfo = getInfoByLocationUseCase.invoke(placeId)
 
         placeInfoSubscriber?.dispose()
         placeInfoSubscriber = placeInfo!!.observeOn(AndroidSchedulers.mainThread())
@@ -82,12 +89,12 @@ class MainVM @Inject constructor(
             })
 
 
-        val placeInMarkdown = markdownRepository.isPlaceInMarkdowns(currentPlaceId!!)
+        val placeInMarkdown = isPlaceInMarkdownsUseCase.invoke(currentPlaceId!!)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 _currentPlaceFavorite.value = true
             }, {
-                Log.e("MapsActivity", "place markdowns error ${it.message}")
+                Log.e(TAG, "place markdowns error ${it.message}")
             }, {
                 _currentPlaceFavorite.value = false
             })
@@ -107,7 +114,7 @@ class MainVM @Inject constructor(
     fun getDirection(origin: Location, destination: Location) {
         _direction.value = Result.Loading()
         compositeDisposable.add(
-            googleMapsApiRepository.getDirection(origin, destination)
+            getDirectionUseCase.invoke(origin, destination)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _direction.value = Result.Success(it)
@@ -148,11 +155,11 @@ class MainVM @Inject constructor(
         if(currentPlaceId == null)
             return
 
-        val subscriber = markdownRepository.isPlaceInMarkdowns(currentPlaceId!!)
+        val subscriber = isPlaceInMarkdownsUseCase.invoke(currentPlaceId!!)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                Log.e("MapsActivity", "update success")
-                val deleteSubscriber = markdownRepository.deleteMarkdownById(currentPlaceId!!)
+                Log.d(TAG, "update favorite place success")
+                val deleteSubscriber = deleteMarkdownByIdUseCase.invoke(currentPlaceId!!)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         _currentPlaceFavorite.value = false
@@ -161,12 +168,12 @@ class MainVM @Inject constructor(
                     })
                 compositeDisposable.add(deleteSubscriber)
             }, {
-                Log.e("MapsActivity", "update exception ${it.message}")
+                Log.e(TAG, "update favorite place exception ${it.message}")
             }, {
-                Log.e("MapsActivity", "update complete")
+                Log.d(TAG, "update favorite place complete")
                 val placeInfo = (_placeData.value as Result.Success).value
                 val markdown = Markdown(currentPlaceId!!, placeInfo.name, placeInfo.address, placeInfo.location)
-                val insertSubscriber = markdownRepository.insert(markdown)
+                val insertSubscriber = insertMarkdownUseCase.invoke(markdown)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         _currentPlaceFavorite.value = true
