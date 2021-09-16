@@ -10,7 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.example.maps.databinding.FragmentSignInBinding
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.authorization.AuthVM
 import com.example.maps.utils.extensions.hide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -38,7 +38,7 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
         super.onViewCreated(view, savedInstanceState)
 
         if(Firebase.auth.currentUser != null) {
-            authVM.openProfile()
+            authVM.checkSignIn()
             return
         }
 
@@ -73,7 +73,7 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("asd", "signInWithCredential:success")
-                    authVM.openProfile()
+                    authVM.checkSignIn()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("asd", "signInWithCredential:failure", task.exception)

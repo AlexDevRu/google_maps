@@ -7,7 +7,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.maps.R
 import com.example.maps.databinding.FragmentAuthBinding
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.profile.ProfileFragmentDirections
 import com.example.maps.ui.fragments.sign_in.SignInFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,18 +27,17 @@ class AuthFragment: BaseFragment<FragmentAuthBinding>(FragmentAuthBinding::infla
         navController = navHostFragment.navController
 
         observe()
+
+        viewModel.checkSignIn()
     }
 
     private fun observe() {
-        viewModel.openProfile.observe(viewLifecycleOwner) {
+        viewModel.isSignedIn.observe(viewLifecycleOwner) {
             if(it && navController.currentDestination?.id == R.id.signInFragment) {
                 val action = SignInFragmentDirections.actionSignInFragmentToProfileFragment()
                 navController.navigate(action)
             }
-        }
-
-        viewModel.openSignIn.observe(viewLifecycleOwner) {
-            if(it && navController.currentDestination?.id == R.id.profileFragment) {
+            if(!it && navController.currentDestination?.id == R.id.profileFragment) {
                 val action = ProfileFragmentDirections.actionProfileFragmentToSignInFragment()
                 navController.navigate(action)
             }
