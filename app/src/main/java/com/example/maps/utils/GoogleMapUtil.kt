@@ -22,6 +22,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
+import java.lang.Exception
 
 
 class GoogleMapUtil(
@@ -29,7 +30,7 @@ class GoogleMapUtil(
 ) {
 
     companion object {
-        private const val TAG = "MapsActivity"
+        private const val TAG = "GoogleMapUtil"
         private const val DEFAULT_ZOOM = 15f
     }
 
@@ -238,14 +239,16 @@ class GoogleMapUtil(
     }
 
     fun getAddress(latLng: LatLng): Address? {
-        /*if(!internetObserver.isInternetOn())
-            return null*/
-
-        val list =  Geocoder(context)
-            .getFromLocation(latLng.latitude, latLng.longitude, 1)
-        val currentAddress = list.firstOrNull()
-        Log.w(TAG, "currentAddress: ${currentAddress}")
-        return currentAddress
+        return try {
+            val list =  Geocoder(context)
+                .getFromLocation(latLng.latitude, latLng.longitude, 1)
+            val currentAddress = list.firstOrNull()
+            Log.w(TAG, "currentAddress: ${currentAddress}")
+            currentAddress
+        } catch (e: Exception) {
+            Log.w(TAG, "getAddress exception: ${e}")
+            null
+        }
     }
 
     private fun addPolylineToMap(polylineList: List<LatLng>, @ColorRes color: Int = R.color.black): Polyline? {

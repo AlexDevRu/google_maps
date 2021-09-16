@@ -7,7 +7,7 @@ import com.example.domain.common.Result
 import com.example.domain.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
 import dagger.hilt.android.AndroidEntryPoint
 

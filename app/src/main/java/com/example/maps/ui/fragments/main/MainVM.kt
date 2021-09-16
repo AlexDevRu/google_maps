@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.domain.common.Result
+import com.example.domain.exceptions.EmptyResultException
 import com.example.domain.models.Location
 import com.example.domain.models.Markdown
 import com.example.domain.models.directions.Direction
@@ -53,7 +54,7 @@ class MainVM @Inject constructor(
     private val _currentMapMode = MutableLiveData(googleMapUtil.markerMode)
     val currentMapMode: LiveData<GoogleMapUtil.MAP_MODE> = _currentMapMode
 
-    private val _currentPlaceFavorite = MutableLiveData<Boolean>()
+    private val _currentPlaceFavorite = MutableLiveData(false)
     val currentPlaceFavorite: LiveData<Boolean> = _currentPlaceFavorite
 
 
@@ -95,8 +96,8 @@ class MainVM @Inject constructor(
                 _currentPlaceFavorite.value = true
             }, {
                 Log.e(TAG, "place markdowns error ${it.message}")
-            }, {
-                _currentPlaceFavorite.value = false
+                if(it is EmptyResultException)
+                    _currentPlaceFavorite.value = false
             })
 
 
@@ -163,24 +164,20 @@ class MainVM @Inject constructor(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         _currentPlaceFavorite.value = false
-                    }, {
-
-                    })
+                    }, {})
                 compositeDisposable.add(deleteSubscriber)
             }, {
                 Log.e(TAG, "update favorite place exception ${it.message}")
-            }, {
-                Log.d(TAG, "update favorite place complete")
-                val placeInfo = (_placeData.value as Result.Success).value
-                val markdown = Markdown(currentPlaceId!!, placeInfo.name, placeInfo.address, placeInfo.location)
-                val insertSubscriber = insertMarkdownUseCase.invoke(markdown)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        _currentPlaceFavorite.value = true
-                    }, {
-
-                    })
-                compositeDisposable.add(insertSubscriber)
+                if(it is EmptyResultException) {
+                    val placeInfo = (_placeData.value as Result.Success).value
+                    val markdown = Markdown(currentPlaceId!!, placeInfo.name, placeInfo.address, placeInfo.location)
+                    val insertSubscriber = insertMarkdownUseCase.invoke(markdown)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            _currentPlaceFavorite.value = true
+                        }, {})
+                    compositeDisposable.add(insertSubscriber)
+                }
             })
 
         compositeDisposable.add(subscriber)

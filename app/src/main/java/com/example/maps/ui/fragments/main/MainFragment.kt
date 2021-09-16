@@ -20,7 +20,7 @@ import com.example.maps.mappers.toModel
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.adapters.PlaceTabsAdapter
 import com.example.maps.ui.adapters.ReviewAdapter
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
 import com.example.maps.utils.extensions.hide
@@ -31,10 +31,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -43,11 +41,13 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate),
     OnMapReadyCallback {
 
+    companion object {
+        private const val TAG = "MapsActivity"
+    }
+
     private val viewModel by activityViewModels<MainVM>()
 
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
-
-    private val TAG = "MapsActivity"
 
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var placePhotosAdapter: PlacePhotosAdapter
@@ -140,7 +140,9 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             if(viewModel.googleMapUtil.currentCameraPosition == null) {
                 viewModel.googleMapUtil.getDeviceLocation {
                     val address = viewModel.googleMapUtil.getAddress(it)
-                    autocompleteFragment.setCountry(address?.countryCode)
+                    if(address != null) {
+                        autocompleteFragment.setCountry(address.countryCode)
+                    }
                 }
             }
             else
@@ -192,10 +194,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         binding.directionsChoosing.originButton.setOnClickListener {
             viewModel.googleMapUtil.currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
-            autocompleteFragment.startActivity(
-                Autocomplete.IntentBuilder(
-                AutocompleteActivityMode.FULLSCREEN, listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
-                .build(requireContext()))
         }
 
         binding.directionsChoosing.destinationButton.setOnClickListener {
@@ -274,7 +272,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 }
                 is Result.Failure -> {
                     binding.placeInfo.progressBar.hide()
-                    Log.e("MapsActivity", "place found exception: ${it.throwable.message}")
+                    Log.e(TAG, "place found exception: ${it.throwable.message}")
                     showSnackBar(it.throwable.message.orEmpty())
                 }
             }
@@ -293,13 +291,13 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                     binding.directionsChoosing.progressBar.hide()
 
                     val direction = it.value
-                    Log.w("MapsActivity", "direction found: ${direction}")
+                    Log.w(TAG, "direction found: ${direction}")
 
                     viewModel.googleMapUtil.createDirection(direction)
                     updateDirectionInfo(direction)
                 }
                 is Result.Failure -> {
-                    Log.e("MapsActivity", "direction exception: ${it.throwable.message}")
+                    Log.e(TAG, "direction exception: ${it.throwable.message}")
                     showSnackBar(it.throwable.message.orEmpty())
                 }
             }

@@ -1,4 +1,4 @@
-package com.example.maps.ui.base
+package com.example.maps.ui.fragments.base
 
 import android.os.Bundle
 import android.view.LayoutInflater

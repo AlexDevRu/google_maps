@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.room.Room
 import com.example.data.api.GoogleMapApiService
 import com.example.data.database.MapsDatabase
+import com.example.data.repositories.FirebaseRepository
 import com.example.data.repositories.GoogleMapsApiRepository
 import com.example.data.repositories.MarkdownRepository
+import com.example.domain.repositories.IFirebaseRepository
 import com.example.domain.repositories.IGoogleMapApiRepository
 import com.example.domain.repositories.IMarkdownRepository
 import dagger.Module
@@ -30,4 +32,7 @@ object DatabaseModule {
 
     @Provides
     fun providesGoogleMapApiRepository(service: GoogleMapApiService): IGoogleMapApiRepository = GoogleMapsApiRepository(service)
+
+    @Provides
+    fun providesFirebaseRepository(): IFirebaseRepository = FirebaseRepository()
 }

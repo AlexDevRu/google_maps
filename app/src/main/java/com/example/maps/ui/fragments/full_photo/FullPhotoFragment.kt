@@ -5,7 +5,7 @@ import android.view.View
 import androidx.navigation.fragment.navArgs
 import androidx.transition.TransitionInflater
 import com.example.maps.databinding.FragmentFullPhotoBinding
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.utils.extensions.url
 
 class FullPhotoFragment: BaseFragment<FragmentFullPhotoBinding>(FragmentFullPhotoBinding::inflate) {

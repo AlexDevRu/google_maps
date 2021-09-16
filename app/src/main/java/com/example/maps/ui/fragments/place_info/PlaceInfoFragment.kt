@@ -12,7 +12,7 @@ import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.adapters.ReviewAdapter
-import com.example.maps.ui.base.BaseFragment
+import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
 import dagger.hilt.android.AndroidEntryPoint
 

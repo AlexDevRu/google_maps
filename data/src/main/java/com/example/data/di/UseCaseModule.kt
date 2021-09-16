@@ -1,5 +1,6 @@
 package com.example.data.di
 
+import com.example.domain.repositories.IFirebaseRepository
 import com.example.domain.repositories.IGoogleMapApiRepository
 import com.example.domain.repositories.IMarkdownRepository
 import com.example.domain.use_cases.GetDirectionUseCase
@@ -27,18 +28,18 @@ object UseCaseModule {
 
 
     @Provides
-    fun providesDeleteMarkdownByIdUseCase(markdownRepository: IMarkdownRepository)
-            = DeleteMarkdownByIdUseCase(markdownRepository)
+    fun providesDeleteMarkdownByIdUseCase(markdownRepository: IMarkdownRepository, firebaseRepository: IFirebaseRepository)
+            = DeleteMarkdownByIdUseCase(markdownRepository, firebaseRepository)
 
     @Provides
-    fun providesGetMarkdownsUseCase(markdownRepository: IMarkdownRepository)
-            = GetMarkdownsUseCase(markdownRepository)
+    fun providesGetMarkdownsUseCase(markdownRepository: IMarkdownRepository, firebaseRepository: IFirebaseRepository)
+            = GetMarkdownsUseCase(markdownRepository, firebaseRepository)
 
     @Provides
-    fun providesInsertMarkdownUseCase(markdownRepository: IMarkdownRepository)
-            = InsertMarkdownUseCase(markdownRepository)
+    fun providesInsertMarkdownUseCase(markdownRepository: IMarkdownRepository, firebaseRepository: IFirebaseRepository)
+            = InsertMarkdownUseCase(markdownRepository, firebaseRepository)
 
     @Provides
-    fun providesIsPlaceInMarkdownsUseCase(markdownRepository: IMarkdownRepository)
-            = IsPlaceInMarkdownsUseCase(markdownRepository)
+    fun providesIsPlaceInMarkdownsUseCase(markdownRepository: IMarkdownRepository, firebaseRepository: IFirebaseRepository)
+            = IsPlaceInMarkdownsUseCase(markdownRepository, firebaseRepository)
 }
