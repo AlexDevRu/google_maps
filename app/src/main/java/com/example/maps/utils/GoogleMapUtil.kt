@@ -112,8 +112,6 @@ class GoogleMapUtil(
         set(value) {
             field = value
             val isDirection = field == MAP_MODE.DIRECTION
-            origin?.isVisible = isDirection
-            destination?.isVisible = isDirection
             drivingDirection.forEach {
                 it.key.isVisible = isDirection
                 it.value.isVisible = isDirection
@@ -122,6 +120,11 @@ class GoogleMapUtil(
             if(isDirection && placeMarker != null) {
                 createDestinationMarker(placeMarker!!.position)
             }
+            if(isDirection && currentLocation != null) {
+                createOriginMarker(currentLocation!!)
+            }
+            origin?.isVisible = isDirection
+            destination?.isVisible = isDirection
             printInfo()
         }
 
