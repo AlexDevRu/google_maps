@@ -320,8 +320,11 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun updateDirectionInfo(direction: Direction) {
-        binding.directionsChoosing.distance.setHtml(resources.getString(R.string.total_distance, "%.2f".format(direction.distance)))
-        binding.directionsChoosing.duration.setHtml(resources.getString(R.string.total_duration, "%.1f".format(direction.distance)))
+        val distm = direction.routes?.firstOrNull()?.legs?.firstOrNull()?.distance?.text?.split(" ")?.get(1)
+        val durtm = direction.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text?.split(" ")?.get(1)
+
+        binding.directionsChoosing.distance.setHtml(resources.getString(R.string.total_distance, "%.2f".format(direction.distance), distm))
+        binding.directionsChoosing.duration.setHtml(resources.getString(R.string.total_duration, "%.1f".format(direction.distance), durtm))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
