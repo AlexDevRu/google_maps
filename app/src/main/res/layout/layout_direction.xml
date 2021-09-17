@@ -37,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/build_direction"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="@dimen/medium_indent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/destinationButton" />
 
@@ -54,8 +54,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_marginTop="14dp"
-        android:textSize="16sp"
+        android:layout_marginTop="@dimen/big_indent"
+        android:textSize="@dimen/medium_textsize"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/buildDirectionButton" />
 
@@ -64,10 +64,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="@dimen/small_indent"
         app:layout_constraintTop_toBottomOf="@id/duration"
         app:layout_constraintStart_toStartOf="parent"
-        android:textSize="16sp"/>
+        android:textSize="@dimen/medium_textsize"/>
 
     <ProgressBar
         android:id="@+id/progressBar"

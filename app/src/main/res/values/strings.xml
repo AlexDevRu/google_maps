@@ -26,6 +26,10 @@
     <string name="sign_out">Sign out</string>
 
     <string name="nothing_found">Nothing found</string>
+    <string name="my_location">My location</string>
+    <string name="direction_button">Direction button</string>
+    <string name="info">Info</string>
+    <string name="photos">Photos</string>
 
     <string-array name="direction_types">
         <item>driving</item>

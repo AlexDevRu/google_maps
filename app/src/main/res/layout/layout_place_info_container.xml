@@ -18,12 +18,12 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Info" />
+            android:text="@string/info" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Photos" />
+            android:text="@string/photos" />
 
     </com.google.android.material.tabs.TabLayout>
 
@@ -42,7 +42,7 @@
         android:visibility="visible"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/smaller_indent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
