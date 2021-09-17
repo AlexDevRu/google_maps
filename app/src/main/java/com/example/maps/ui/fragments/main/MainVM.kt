@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.domain.common.DIRECTION_TYPE
 import com.example.domain.common.Result
 import com.example.domain.exceptions.EmptyResultException
 import com.example.domain.models.Location
@@ -16,6 +17,7 @@ import com.example.domain.use_cases.GetInfoByLocationUseCase
 import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
 import com.example.domain.use_cases.markdowns.InsertMarkdownUseCase
 import com.example.domain.use_cases.markdowns.IsPlaceInMarkdownsUseCase
+import com.example.maps.mappers.toModel
 import com.example.maps.utils.GoogleMapUtil
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
@@ -39,6 +41,8 @@ class MainVM @Inject constructor(
     companion object {
         private const val TAG = "MainVM"
     }
+
+    var directionType = DIRECTION_TYPE.DRIVING
 
     val googleMapUtil = GoogleMapUtil(app)
 
@@ -112,10 +116,15 @@ class MainVM @Inject constructor(
             getInfoByLocation(currentPlaceId!!)
     }
 
-    fun getDirection(origin: Location, destination: Location) {
+    fun getDirection() {
+        if(googleMapUtil.origin == null || googleMapUtil.destination == null) return
+
+        val origin = googleMapUtil.origin!!.position.toModel()
+        val destination = googleMapUtil.destination!!.position.toModel()
+
         _direction.value = Result.Loading()
         compositeDisposable.add(
-            getDirectionUseCase.invoke(origin, destination)
+            getDirectionUseCase.invoke(origin, destination, directionType)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _direction.value = Result.Success(it)

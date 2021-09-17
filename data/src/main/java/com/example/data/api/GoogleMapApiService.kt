@@ -19,6 +19,7 @@ interface GoogleMapApiService {
     fun getDirection(
         @Query("origin") origin: String,
         @Query("destination") destination: String,
+        @Query("mode") directionType: String,
         @Query("key") key: String = API_KEY
     ): Single<DirectionResponse>
 }

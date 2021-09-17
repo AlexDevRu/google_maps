@@ -26,4 +26,11 @@
     <string name="sign_out">Sign out</string>
 
     <string name="nothing_found">Nothing found</string>
+
+    <string-array name="direction_types">
+        <item>driving</item>
+        <item>walking</item>
+        <item>bicycling</item>
+        <item>transit</item>
+    </string-array>
 </resources>

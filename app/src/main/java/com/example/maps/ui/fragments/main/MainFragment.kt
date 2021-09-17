@@ -7,19 +7,20 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
+import com.example.domain.common.DIRECTION_TYPE
 import com.example.domain.common.Result
 import com.example.domain.models.directions.Direction
 import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
 import com.example.maps.mappers.toModel
-import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.adapters.PlaceTabsAdapter
-import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
@@ -49,9 +50,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
 
-    private lateinit var reviewAdapter: ReviewAdapter
-    private lateinit var placePhotosAdapter: PlacePhotosAdapter
-
     private val args: MainFragmentArgs by navArgs()
 
     private var firstInit = false
@@ -63,9 +61,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocompleteFragment.setHint(getString(R.string.search))
-
-        reviewAdapter = ReviewAdapter()
-        placePhotosAdapter = PlacePhotosAdapter()
 
         firstInit = savedInstanceState == null
 
@@ -145,7 +140,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                     }
                 }
             }
-            else
+            else if(!firstInit && args.markdown == null)
                 viewModel.googleMapUtil.moveCamera(
                     viewModel.googleMapUtil.currentCameraPosition!!
                 )
@@ -201,11 +196,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
 
         binding.directionsChoosing.buildDirectionButton.setOnClickListener {
-            if(viewModel.googleMapUtil.origin != null && viewModel.googleMapUtil.destination != null) {
-                val originLocation = viewModel.googleMapUtil.origin!!.position.toModel()
-                val destinationLocation = viewModel.googleMapUtil.destination!!.position.toModel()
-                viewModel.getDirection(originLocation, destinationLocation)
-            }
+            viewModel.getDirection()
         }
 
         viewModel.googleMapUtil.originChangeListener = {
@@ -226,7 +217,38 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             }
         }
 
+        initDirectionTypes()
+
         observe()
+    }
+
+    private fun initDirectionTypes() {
+        // Настраиваем адаптер
+        val adapter: ArrayAdapter<*> = ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.direction_types,
+            android.R.layout.simple_spinner_item
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // Вызываем адаптер
+        binding.directionsChoosing.directionTypeSpinner.adapter = adapter
+
+        binding.directionsChoosing.directionTypeSpinner.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                viewModel.directionType = when(p2) {
+                    1 -> DIRECTION_TYPE.WALKING
+                    2 -> DIRECTION_TYPE.BICYCLING
+                    3 -> DIRECTION_TYPE.TRANSIT
+                    else -> DIRECTION_TYPE.DRIVING
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                viewModel.directionType = DIRECTION_TYPE.DRIVING
+            }
+
+        }
     }
 
     private fun initViewPager() {
@@ -336,7 +358,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         super.onActivityResult(requestCode, resultCode, data)
         when(requestCode) {
             Constants.SPEECH_REQUEST_CODE -> {
-                if(resultCode == 200 && resultCode == AppCompatActivity.RESULT_OK) {
+                if(resultCode == AppCompatActivity.RESULT_OK) {
                     val list = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     val text = list?.firstOrNull()
                     text?.let {

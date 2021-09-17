@@ -6,13 +6,18 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Address
 import android.location.Geocoder
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import com.example.domain.models.directions.Direction
 import com.example.maps.R
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
@@ -22,7 +27,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.PolyUtil
-import java.lang.Exception
 
 
 class GoogleMapUtil(
@@ -150,12 +154,13 @@ class GoogleMapUtil(
     @SuppressLint("PotentialBehaviorOverride")
     fun createOriginMarker(latLng: LatLng) {
         origin?.remove()
+
+        val icon = getBitmapFromVector(R.drawable.ic_origin_marker)
         origin = createMarker(
             latLng,
             null,
-            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE),
-            null,
-            true
+            icon,
+            null
         )
         origin?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
@@ -163,22 +168,42 @@ class GoogleMapUtil(
     @SuppressLint("PotentialBehaviorOverride")
     fun createDestinationMarker(latLng: LatLng) {
         destination?.remove()
+
+        val icon = getBitmapFromVector(R.drawable.ic_destination_marker)
         destination = createMarker(
             latLng,
             null,
-            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE),
-            null,
-            true
+            icon,
+            null
         )
         destination?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
 
+    fun getBitmapFromVector(
+        @DrawableRes vectorResourceId: Int
+    ): BitmapDescriptor? {
+        val vectorDrawable = ResourcesCompat.getDrawable(
+            context.resources, vectorResourceId, null
+        )
+        if (vectorDrawable == null) {
+            Log.e(TAG, "Requested vector resource was not found")
+            return BitmapDescriptorFactory.defaultMarker()
+        }
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
     @SuppressLint("PotentialBehaviorOverride")
-    private fun createMarker(latLng: LatLng, title: String?, markerIcon: BitmapDescriptor? = null, snippet: String? = null, draggable: Boolean = false): Marker? {
+    private fun createMarker(latLng: LatLng, title: String?, markerIcon: BitmapDescriptor? = null, snippet: String? = null): Marker? {
         val markerOptions = MarkerOptions()
         markerOptions.position(latLng)
         markerOptions.title(title)
-        markerOptions.draggable(draggable)
         markerOptions.snippet(snippet)
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
         return googleMap?.addMarker(markerOptions)
