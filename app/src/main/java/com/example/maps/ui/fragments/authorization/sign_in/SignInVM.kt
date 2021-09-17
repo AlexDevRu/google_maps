@@ -1,4 +1,4 @@
-package com.example.maps.ui.fragments.sign_in
+package com.example.maps.ui.fragments.authorization.sign_in
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

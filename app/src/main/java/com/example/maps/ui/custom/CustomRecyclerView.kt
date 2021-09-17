@@ -32,6 +32,7 @@ class CustomRecyclerView @JvmOverloads constructor(
         val a = context.obtainStyledAttributes(attrs, R.styleable.CustomRecyclerView, defStyleAttr, 0)
 
         val layoutManagerStr = a.getString(R.styleable.CustomRecyclerView_layoutManager)
+        val swipeEnabled = a.getBoolean(R.styleable.CustomRecyclerView_swipeEnabled, false)
 
         layoutManager = when(layoutManagerStr) {
             "grid" -> {
@@ -41,7 +42,7 @@ class CustomRecyclerView @JvmOverloads constructor(
             else -> LinearLayoutManager(context)
         }
 
-        swipeToRefreshEnabled = false
+        swipeToRefreshEnabled = swipeEnabled
 
         a.recycle()
     }
@@ -51,10 +52,25 @@ class CustomRecyclerView @JvmOverloads constructor(
             field = value
             if(field) {
                 binding.progressBar.show()
+                binding.emptyResult.root.hide()
                 binding.recyclerView.hide()
             }
             else {
                 binding.progressBar.hide()
+                binding.recyclerView.show()
+                binding.swipeLayout.isRefreshing = false
+            }
+        }
+
+    var isResultEmpty: Boolean = false
+        set(value) {
+            field = value
+            if(field) {
+                binding.emptyResult.root.show()
+                binding.recyclerView.hide()
+            }
+            else {
+                binding.emptyResult.root.hide()
                 binding.recyclerView.show()
             }
         }
@@ -94,7 +110,7 @@ class CustomRecyclerView @JvmOverloads constructor(
             field = value
             binding.swipeLayout.setOnRefreshListener {
                 field.invoke()
-                binding.swipeLayout.isRefreshing = false
+                //binding.swipeLayout.isRefreshing = false
             }
             binding.error.retryButton.setOnClickListener {
                 field.invoke()

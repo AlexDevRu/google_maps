@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
+import com.example.maps.ui.MapsActivity
+import com.example.maps.ui.fragments.GlobalVM
 import com.example.maps.utils.InternetUtil
 import com.google.android.material.snackbar.Snackbar
 
@@ -19,6 +21,9 @@ abstract class BaseFragment<TBinding: ViewBinding>(
     protected lateinit var binding: TBinding
 
     protected lateinit var internetObserver: InternetUtil
+
+    protected val globalVM: GlobalVM
+        get() = (requireActivity() as MapsActivity).globalVM
 
     override fun onCreateView(
         inflater: LayoutInflater,

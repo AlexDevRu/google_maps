@@ -1,4 +1,4 @@
-package com.example.maps.ui.fragments.sign_in
+package com.example.maps.ui.fragments.authorization.sign_in
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,11 +7,10 @@ import android.view.View
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.maps.databinding.FragmentSignInBinding
 import com.example.maps.ui.fragments.base.BaseFragment
-import com.example.maps.ui.fragments.authorization.AuthVM
 import com.example.maps.utils.extensions.hide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -27,7 +26,6 @@ import javax.inject.Inject
 class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding::inflate) {
 
     private val viewModel by viewModels<SignInVM>()
-    private val authVM by activityViewModels<AuthVM>()
 
     @Inject
     lateinit var client: GoogleSignInClient
@@ -36,11 +34,6 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        if(Firebase.auth.currentUser != null) {
-            authVM.checkSignIn()
-            return
-        }
 
         signInResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
@@ -73,7 +66,9 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("asd", "signInWithCredential:success")
-                    authVM.checkSignIn()
+                    globalVM.checkSignIn()
+                    val action = SignInFragmentDirections.actionSignInFragmentToProfileFragment()
+                    findNavController().navigate(action)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("asd", "signInWithCredential:failure", task.exception)

@@ -11,6 +11,7 @@ import com.example.maps.databinding.ViewholderMarkdownBinding
 import com.example.maps.mappers.toArg
 import com.example.maps.ui.fragments.markdowns.MarkdownsFragmentDirections
 
+
 class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
     : ListAdapter<Markdown, MarkdownAdapter.MarkdownViewHolder>(MarkdownDiffUtil()) {
 

@@ -2,17 +2,21 @@ package com.example.maps.ui
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.maps.R
 import com.example.maps.databinding.ActivityMapsBinding
+import com.example.maps.ui.fragments.GlobalVM
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MapsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMapsBinding
+
+    val globalVM by viewModels<GlobalVM>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +30,12 @@ class MapsActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         binding.bottomNavigationView.setupWithNavController(navController)
+
+        globalVM.isSignedIn.observe(this) {
+            binding.bottomNavigationView.menu.findItem(R.id.signInFragment).isVisible = !it
+            binding.bottomNavigationView.menu.findItem(R.id.markdownFragment).isVisible = it
+            binding.bottomNavigationView.menu.findItem(R.id.profileFragment).isVisible = it
+        }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             binding.bottomNavigationView.visibility = when(destination.id) {

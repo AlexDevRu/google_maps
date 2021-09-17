@@ -48,5 +48,6 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
 
     private fun updatePhotos(photos: List<Photo>?) {
         photosAdapter.submitList(photos)
+        binding.placePhotosList.isResultEmpty = photos.isNullOrEmpty()
     }
 }

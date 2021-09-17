@@ -5,11 +5,15 @@
         android:title="@string/main"
         android:icon="@drawable/ic_baseline_room_24"/>
     <item
+        android:id="@+id/signInFragment"
+        android:title="@string/sign_in"
+        android:icon="@drawable/ic_baseline_vpn_key_24"/>
+    <item
         android:id="@+id/markdownFragment"
         android:title="@string/markdowns"
         android:icon="@drawable/ic_baseline_bookmark_24"/>
     <item
-        android:id="@+id/authFragment"
+        android:id="@+id/profileFragment"
         android:title="@string/profile"
         android:icon="@drawable/ic_baseline_person_24"/>
 </menu>

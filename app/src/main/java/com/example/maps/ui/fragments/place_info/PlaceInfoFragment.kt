@@ -14,6 +14,8 @@ import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
+import com.example.maps.utils.extensions.hide
+import com.example.maps.utils.extensions.show
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -55,12 +57,31 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
 
         mainVM.currentPlaceFavorite.observe(viewLifecycleOwner) {
             Log.e("MapsActivity", "currentPlaceFavorite observer $it")
-            val color = if(it) R.color.red else R.color.black
-            binding.markdownButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
+            when(it) {
+                is Result.Loading -> {
+                    binding.markdownProgressBar.show()
+                    binding.markdownButton.hide()
+                }
+                is Result.Success -> {
+                    val color = if(it.value) R.color.red else R.color.black
+                    binding.markdownButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
+                    binding.markdownButton.show()
+                    binding.markdownProgressBar.hide()
+                }
+                is Result.Failure -> {
+                    binding.markdownButton.show()
+                    binding.markdownProgressBar.hide()
+                }
+            }
         }
 
         binding.markdownButton.setOnClickListener {
             mainVM.toggleFavoriteCurrentPlace()
+        }
+
+        globalVM.isSignedIn.observe(viewLifecycleOwner) {
+            if(it) binding.markdownButton.show()
+            else binding.markdownButton.hide()
         }
     }
 
@@ -75,9 +96,7 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
 
         if(place.website != null) {
             val data = resources.getString(R.string.place_website, place.website)
-            val content = SpannableString(data)
-            content.setSpan(UnderlineSpan(), 10, data.length, 0)
-            binding.placeWebsite.text = content
+            binding.placeWebsite.text = data
         } else {
             binding.placeWebsite.visibility = View.GONE
         }
@@ -86,5 +105,6 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         binding.ratingText.text = if(place.rating != null) "%.1f".format(place.rating) else "0"
 
         reviewAdapter.submitList(place.reviews)
+        binding.reviewsList.isResultEmpty = place.reviews.isNullOrEmpty()
     }
 }

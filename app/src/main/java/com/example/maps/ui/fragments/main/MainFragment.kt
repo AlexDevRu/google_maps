@@ -140,7 +140,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             if(viewModel.googleMapUtil.currentCameraPosition == null) {
                 viewModel.googleMapUtil.getDeviceLocation {
                     val address = viewModel.googleMapUtil.getAddress(it)
-                    if(address != null) {
+                    if (address != null) {
                         autocompleteFragment.setCountry(address.countryCode)
                     }
                 }
@@ -320,11 +320,16 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun updateDirectionInfo(direction: Direction) {
-        val distm = direction.routes?.firstOrNull()?.legs?.firstOrNull()?.distance?.text?.split(" ")?.get(1)
-        val durtm = direction.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text?.split(" ")?.get(1)
+        val leg = direction.routes?.firstOrNull()?.legs?.firstOrNull()
 
-        binding.directionsChoosing.distance.setHtml(resources.getString(R.string.total_distance, "%.2f".format(direction.distance), distm))
-        binding.directionsChoosing.duration.setHtml(resources.getString(R.string.total_duration, "%.1f".format(direction.distance), durtm))
+        val distanceMeasure = leg?.distance?.text?.split(" ")?.get(1)
+        val durationMeasure = leg?.duration?.text?.split(" ")?.get(1)
+
+        val distance = resources.getString(R.string.total_distance, "%.2f".format(direction.distance), distanceMeasure)
+        val duration = resources.getString(R.string.total_duration, "%.1f".format(direction.distance), durationMeasure)
+
+        binding.directionsChoosing.distance.setHtml(distance)
+        binding.directionsChoosing.duration.setHtml(duration)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

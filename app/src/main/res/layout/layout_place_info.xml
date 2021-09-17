@@ -25,7 +25,7 @@
         android:layout_marginTop="4dp"
         android:layout_marginEnd="12dp"
         android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@+id/markdownButton"
+        app:layout_constraintEnd_toStartOf="@id/barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/placeName"
         tools:text="Address" />
@@ -104,6 +104,14 @@
         android:src="@drawable/ic_baseline_bookmark_24"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    <ProgressBar
+        android:id="@+id/markdownProgressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:padding="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
     <ProgressBar
@@ -115,5 +123,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="left"
+        app:constraint_referenced_ids="markdownButton,markdownProgressBar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

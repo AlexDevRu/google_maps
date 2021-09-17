@@ -54,8 +54,8 @@ class MainVM @Inject constructor(
     private val _currentMapMode = MutableLiveData(googleMapUtil.markerMode)
     val currentMapMode: LiveData<GoogleMapUtil.MAP_MODE> = _currentMapMode
 
-    private val _currentPlaceFavorite = MutableLiveData(false)
-    val currentPlaceFavorite: LiveData<Boolean> = _currentPlaceFavorite
+    private val _currentPlaceFavorite = MutableLiveData<Result<Boolean>>()
+    val currentPlaceFavorite: LiveData<Result<Boolean>> = _currentPlaceFavorite
 
 
     private var placeInfo: Single<PlaceInfo>? = null
@@ -93,11 +93,11 @@ class MainVM @Inject constructor(
         val placeInMarkdown = isPlaceInMarkdownsUseCase.invoke(currentPlaceId!!)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                _currentPlaceFavorite.value = true
+                _currentPlaceFavorite.value = Result.Success(true)
             }, {
                 Log.e(TAG, "place markdowns error ${it.message}")
                 if(it is EmptyResultException)
-                    _currentPlaceFavorite.value = false
+                    _currentPlaceFavorite.value = Result.Success(false)
             })
 
 
@@ -156,6 +156,8 @@ class MainVM @Inject constructor(
         if(currentPlaceId == null)
             return
 
+        _currentPlaceFavorite.value = Result.Loading()
+
         val subscriber = isPlaceInMarkdownsUseCase.invoke(currentPlaceId!!)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -163,8 +165,10 @@ class MainVM @Inject constructor(
                 val deleteSubscriber = deleteMarkdownByIdUseCase.invoke(currentPlaceId!!)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        _currentPlaceFavorite.value = false
-                    }, {})
+                        _currentPlaceFavorite.value = Result.Success(false)
+                    }, {
+                        _currentPlaceFavorite.value = Result.Failure(it)
+                    })
                 compositeDisposable.add(deleteSubscriber)
             }, {
                 Log.e(TAG, "update favorite place exception ${it.message}")
@@ -174,8 +178,10 @@ class MainVM @Inject constructor(
                     val insertSubscriber = insertMarkdownUseCase.invoke(markdown)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            _currentPlaceFavorite.value = true
-                        }, {})
+                            _currentPlaceFavorite.value = Result.Success(true)
+                        }, {
+                            _currentPlaceFavorite.value = Result.Failure(it)
+                        })
                     compositeDisposable.add(insertSubscriber)
                 }
             })

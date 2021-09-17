@@ -36,8 +36,6 @@ class GoogleMapUtil(
 
     private var googleMap: GoogleMap? = null
 
-    private val internetObserver = InternetUtil(context)
-
     val colors = listOf(R.color.black, R.color.green, R.color.red, R.color.teal_700, R.color.purple_500, R.color.orange)
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -185,21 +183,6 @@ class GoogleMapUtil(
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
         return googleMap?.addMarker(markerOptions)
     }
-
-    /*private fun getLocationByKey(query: String) {
-        val geocoder = Geocoder(context)
-        try {
-            val list =  geocoder.getFromLocationName(query, 1)
-            if(list.isNotEmpty()) {
-                val address = list.first()
-                val marker = LatLng(address.latitude, address.longitude)
-                googleMap?.addMarker(MarkerOptions().position(marker).title(address.getAddressLine(0)))
-                moveCamera(marker)
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "getLocationByKey IOException: ${e.message}")
-        }
-    }*/
 
     @SuppressLint("MissingPermission")
     fun setDefaultSettings(): Boolean {
