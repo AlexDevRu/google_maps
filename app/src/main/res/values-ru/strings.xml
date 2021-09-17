@@ -4,11 +4,14 @@
     <string name="title_activity_maps">Карты</string>
     <string name="search">Поиск</string>
 
-    <string name="total_distance"><![CDATA[<b>Общее расстояние:</b> %s км.]]></string>
-    <string name="total_duration"><![CDATA[<b>Общее время:</b> %s ч.]]></string>
+    <string name="total_distance"><![CDATA[<b>Общее расстояние:</b> %s км. %s м.]]></string>
+    <string name="total_duration"><![CDATA[<b>Общее время:</b> %s ч. %s мин.]]></string>
 
     <string name="distance"><![CDATA[<b>Расстояние:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Время:</b> %s]]></string>
+
+    <string name="metres">м.</string>
+    <string name="kilometres">км.</string>
 
     <string name="place_name">Название: %s</string>
     <string name="place_address">Адрес: %s</string>

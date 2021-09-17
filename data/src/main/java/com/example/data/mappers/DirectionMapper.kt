@@ -5,8 +5,8 @@ import com.example.data.api.responses.directions.*
 import com.example.domain.models.directions.Direction
 
 fun DirectionResponse.toModel(): Direction {
-    var dist = 0.0
-    var dur = 0.0
+    var dist = 0
+    var dur = 0
 
     for(d in routes.orEmpty()) {
         for(i in d.legs) {
@@ -23,8 +23,8 @@ fun DirectionResponse.toModel(): Direction {
     return Direction(
         bounds = bounds?.toModel(),
         routes = routes?.map { it.toModel() },
-        distance = dist / 1000,
-        duration = dur / 3600,
+        total_distance = dist,
+        total_duration = dur,
         status = status
     )
 }

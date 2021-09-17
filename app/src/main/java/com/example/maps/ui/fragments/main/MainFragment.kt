@@ -342,10 +342,14 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun updateDirectionInfo(direction: Direction) {
-        val leg = direction.routes?.firstOrNull()?.legs?.firstOrNull()
+        val km = direction.total_distance / 1000
+        val metres = direction.total_distance % 1000
 
-        val distance = resources.getString(R.string.total_distance, "%.2f".format(direction.distance))
-        val duration = resources.getString(R.string.total_duration, "%.1f".format(direction.distance))
+        val hours = direction.total_duration / 3600
+        val minutes = direction.total_duration % 3600 / 60
+
+        val distance = resources.getString(R.string.total_distance, km.toString(), metres.toString())
+        val duration = resources.getString(R.string.total_duration, hours.toString(), minutes.toString())
 
         binding.directionsChoosing.distance.setHtml(distance)
         binding.directionsChoosing.duration.setHtml(duration)

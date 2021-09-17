@@ -3,11 +3,13 @@
     <string name="title_activity_maps">Maps</string>
     <string name="search">Search</string>
 
-    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s km.]]></string>
-    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s h.]]></string>
+    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s km. %s m.]]></string>
+    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s h. %s min.]]></string>
 
     <string name="distance"><![CDATA[<b>Distance:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Duration:</b> %s]]></string>
+    <string name="metres">m.</string>
+    <string name="kilometres">km.</string>
 
     <string name="place_name">Name: %s</string>
     <string name="place_address">Address: %s</string>
