@@ -16,11 +16,16 @@ class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
     : ListAdapter<Markdown, MarkdownAdapter.MarkdownViewHolder>(MarkdownDiffUtil()) {
 
     inner class MarkdownViewHolder(private val binding: ViewholderMarkdownBinding): RecyclerView.ViewHolder(binding.root) {
+
+        private lateinit var markdown: Markdown
+
         fun bind(markdown: Markdown) {
+            this.markdown = markdown
+
             binding.placeName.text = markdown.name
             binding.placeAddress.text = markdown.address
             binding.deleteButton.setOnClickListener {
-                deleteHandler(markdown)
+                delete()
                 notifyItemRemoved(absoluteAdapterPosition)
                 notifyItemRangeChanged(absoluteAdapterPosition, itemCount)
             }
@@ -28,6 +33,10 @@ class MarkdownAdapter(private val deleteHandler: ((Markdown) -> Unit))
                 val action = MarkdownsFragmentDirections.actionMarkdownFragmentToMainFragment(markdown.toArg())
                 itemView.findNavController().navigate(action)
             }
+        }
+
+        fun delete() {
+            deleteHandler(markdown)
         }
     }
 

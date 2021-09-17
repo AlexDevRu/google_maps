@@ -28,6 +28,8 @@ class MarkdownsFragment: BaseFragment<FragmentMarkdownsBinding>(FragmentMarkdown
         }
 
         viewModel.getMarkdowns()
+
+        initSwipeToDelete()
     }
 
     private fun observe() {
@@ -46,6 +48,12 @@ class MarkdownsFragment: BaseFragment<FragmentMarkdownsBinding>(FragmentMarkdown
                     binding.markdownsList.isLoading = false
                 }
             }
+        }
+    }
+
+    private fun initSwipeToDelete() {
+        binding.markdownsList.addSwipeToDelete {
+            (it as MarkdownAdapter.MarkdownViewHolder).delete()
         }
     }
 }
