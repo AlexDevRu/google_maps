@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">Maps</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_maps">Maps</string>
     <string name="search">Search</string>
 
-    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s %s]]></string>
-    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s %s]]></string>
+    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s km.]]></string>
+    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s h.]]></string>
 
     <string name="distance"><![CDATA[<b>Distance:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Duration:</b> %s]]></string>
@@ -12,7 +12,6 @@
     <string name="place_name">Name: %s</string>
     <string name="place_address">Address: %s</string>
     <string name="place_phone">Phone: %s</string>
-    <string name="place_types">Types: %s</string>
     <string name="place_website">Website: %s</string>
     <string name="choose_origin">Choose origin</string>
     <string name="choose_destination">Choose destination</string>
@@ -35,6 +34,6 @@
         <item>driving</item>
         <item>walking</item>
         <item>bicycling</item>
-        <item>transit</item>
+        <item>transport</item>
     </string-array>
 </resources>

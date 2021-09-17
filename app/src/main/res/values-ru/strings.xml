@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Карты</string>
+    <string name="title_activity_maps">Карты</string>
+    <string name="search">Поиск</string>
+
+    <string name="total_distance"><![CDATA[<b>Общее расстояние:</b> %s км.]]></string>
+    <string name="total_duration"><![CDATA[<b>Общее время:</b> %s ч.]]></string>
+
+    <string name="distance"><![CDATA[<b>Расстояние:</b> %s]]></string>
+    <string name="duration"><![CDATA[<b>Время:</b> %s]]></string>
+
+    <string name="place_name">Название: %s</string>
+    <string name="place_address">Адрес: %s</string>
+    <string name="place_phone">Телефон: %s</string>
+    <string name="place_website">Веб-сайт: %s</string>
+    <string name="choose_origin">Выберите начальную точку</string>
+    <string name="choose_destination">Выберите конечную точку</string>
+    <string name="build_direction">Построить маршрут</string>
+    <string name="retry">Повторить</string>
+    <string name="main">Главная</string>
+    <string name="profile">Профиль</string>
+    <string name="markdowns">Закладки</string>
+    <string name="logo">Логотип</string>
+    <string name="sign_in">Войти</string>
+    <string name="sign_out">Выйти</string>
+
+    <string name="nothing_found">Ничего не найдено</string>
+    <string name="my_location">Мое местонахождение</string>
+    <string name="direction_button">Кнопка маршрута</string>
+    <string name="info">Информация</string>
+    <string name="photos">Фотографии</string>
+
+    <string-array name="direction_types">
+        <item>автомобиль</item>
+        <item>пешком</item>
+        <item>велосипед</item>
+        <item>транспорт</item>
+    </string-array>
+</resources>
