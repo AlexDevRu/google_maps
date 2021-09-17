@@ -6,18 +6,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.location.Address
 import android.location.Geocoder
 import android.os.Looper
 import android.util.Log
-import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
-import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import com.example.domain.models.directions.Direction
 import com.example.maps.R
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
@@ -109,27 +104,36 @@ class GoogleMapUtil(
         private set
 
 
-    private val drivingDirection = hashMapOf<Polyline, Marker>()
+    private val directionPolylines = hashMapOf<Polyline, Marker>()
 
     var markerMode = MAP_MODE.PLACE
         set(value) {
             field = value
-            val isDirection = field == MAP_MODE.DIRECTION
-            drivingDirection.forEach {
-                it.key.isVisible = isDirection
-                it.value.isVisible = isDirection
-            }
-            Log.e(TAG, "markerMode direction: ${isDirection}")
-            if(isDirection && placeMarker != null) {
-                createDestinationMarker(placeMarker!!.position)
-            }
-            if(isDirection && currentLocation != null) {
-                createOriginMarker(currentLocation!!)
-            }
-            origin?.isVisible = isDirection
-            destination?.isVisible = isDirection
-            printInfo()
+            changeMarkerMode(field)
         }
+
+    private fun changeMarkerMode(mode: MAP_MODE) {
+        val isDirection = mode == MAP_MODE.DIRECTION
+        directionPolylines.forEach {
+            it.key.isVisible = isDirection
+            it.value.isVisible = isDirection
+        }
+        Log.e(TAG, "markerMode direction: ${isDirection}")
+        if(isDirection && placeMarker != null) {
+            createDestinationMarker(placeMarker!!.position)
+        }
+        if(isDirection && currentLocation != null) {
+            createOriginMarker(currentLocation!!)
+        }
+        origin?.isVisible = isDirection
+        destination?.isVisible = isDirection
+        directionPolylines.keys.forEach {
+            Log.d(TAG, "hfdgkjhdfkgjhdkjghdfkjgh")
+            it.isVisible = isDirection
+            it.isClickable = isDirection
+        }
+        printInfo()
+    }
 
     var currentDirectionMarker = DIRECTION_MARKER.DESTINATION
 
@@ -155,13 +159,8 @@ class GoogleMapUtil(
     fun createOriginMarker(latLng: LatLng) {
         origin?.remove()
 
-        val icon = getBitmapFromVector(R.drawable.ic_origin_marker)
-        origin = createMarker(
-            latLng,
-            null,
-            icon,
-            null
-        )
+        val icon = Utils.getBitmapFromVector(context, R.drawable.ic_origin_marker)
+        origin = createMarker(latLng, null, icon, null)
         origin?.isVisible = markerMode == MAP_MODE.DIRECTION
     }
 
@@ -169,34 +168,9 @@ class GoogleMapUtil(
     fun createDestinationMarker(latLng: LatLng) {
         destination?.remove()
 
-        val icon = getBitmapFromVector(R.drawable.ic_destination_marker)
-        destination = createMarker(
-            latLng,
-            null,
-            icon,
-            null
-        )
+        val icon = Utils.getBitmapFromVector(context, R.drawable.ic_destination_marker)
+        destination = createMarker(latLng, null, icon, null)
         destination?.isVisible = markerMode == MAP_MODE.DIRECTION
-    }
-
-    fun getBitmapFromVector(
-        @DrawableRes vectorResourceId: Int
-    ): BitmapDescriptor? {
-        val vectorDrawable = ResourcesCompat.getDrawable(
-            context.resources, vectorResourceId, null
-        )
-        if (vectorDrawable == null) {
-            Log.e(TAG, "Requested vector resource was not found")
-            return BitmapDescriptorFactory.defaultMarker()
-        }
-        val bitmap = Bitmap.createBitmap(
-            vectorDrawable.intrinsicWidth,
-            vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
-        vectorDrawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -226,7 +200,7 @@ class GoogleMapUtil(
 
     fun initTouchEvents() {
         googleMap?.setOnPolylineClickListener {
-            val marker = drivingDirection[it]
+            val marker = directionPolylines[it]
             marker?.showInfoWindow()
             if(marker != null) moveCamera(marker.position, googleMap!!.cameraPosition.zoom)
         }
@@ -275,11 +249,11 @@ class GoogleMapUtil(
         if(direction.routes.isNullOrEmpty())
             return
 
-        drivingDirection.forEach {
+        directionPolylines.forEach {
             it.key.remove()
             it.value.remove()
         }
-        drivingDirection.clear()
+        directionPolylines.clear()
 
         for (route in direction.routes!!) {
             //polylineList.addAll(PolyUtil.decode(route.overview_polyline.points))
@@ -304,7 +278,7 @@ class GoogleMapUtil(
 
                         marker?.position = midPoint
 
-                        if(marker != null) drivingDirection[polyline] = marker
+                        if(marker != null) directionPolylines[polyline] = marker
                     }
                 }
             }
@@ -325,6 +299,11 @@ class GoogleMapUtil(
             )
 
             googleMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
+        }
+
+        directionPolylines.keys.forEach {
+            it.isVisible = markerMode == MAP_MODE.DIRECTION
+            it.isClickable = markerMode == MAP_MODE.DIRECTION
         }
     }
 
