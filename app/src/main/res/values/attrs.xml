@@ -3,5 +3,6 @@
     <declare-styleable name="CustomRecyclerView">
         <attr name="layoutManager" format="string" />
         <attr name="columnCount" format="integer" />
+        <attr name="swipeEnabled" format="boolean" />
     </declare-styleable>
 </resources>

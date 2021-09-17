@@ -3,8 +3,8 @@
     <string name="title_activity_maps">Map</string>
     <string name="search">Search</string>
 
-    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s]]></string>
-    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s]]></string>
+    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s %s]]></string>
+    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s %s]]></string>
 
     <string name="distance"><![CDATA[<b>Distance:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Duration:</b> %s]]></string>
@@ -24,4 +24,6 @@
     <string name="logo">Logo</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_out">Sign out</string>
+
+    <string name="nothing_found">Nothing found</string>
 </resources>
