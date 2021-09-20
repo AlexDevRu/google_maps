@@ -7,6 +7,6 @@ import com.example.domain.models.place_info.PlaceInfo
 import io.reactivex.Single
 
 interface IGoogleMapApiRepository {
-    fun getInfoByLocation(placeId: String): Single<PlaceInfo>
-    fun getDirection(origin: Location, destination: Location, directionType: DIRECTION_TYPE): Single<Direction>
+    fun getInfoByLocation(placeId: String, language: String?): Single<PlaceInfo>
+    fun getDirection(origin: Location, destination: Location, directionType: DIRECTION_TYPE, language: String?): Single<Direction>
 }

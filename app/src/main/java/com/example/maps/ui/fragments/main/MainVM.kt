@@ -69,6 +69,10 @@ class MainVM @Inject constructor(
         private set
 
 
+    val currentLanguage: String?
+        get() = googleMapUtil.currentAddress?.locale?.language
+
+
     fun toggleMapMode() {
         googleMapUtil.markerMode = if(googleMapUtil.markerMode == GoogleMapUtil.MAP_MODE.PLACE)
             GoogleMapUtil.MAP_MODE.DIRECTION
@@ -82,8 +86,10 @@ class MainVM @Inject constructor(
     fun getInfoByLocation(placeId: String) {
         currentPlaceId = placeId
 
+        Log.w(TAG, "current locality $currentLanguage")
+
         _placeData.value = Result.Loading()
-        placeInfo = getInfoByLocationUseCase.invoke(placeId)
+        placeInfo = getInfoByLocationUseCase.invoke(placeId, currentLanguage)
 
         placeInfoSubscriber?.dispose()
         placeInfoSubscriber = placeInfo!!.observeOn(AndroidSchedulers.mainThread())
@@ -124,7 +130,7 @@ class MainVM @Inject constructor(
 
         _direction.value = Result.Loading()
         compositeDisposable.add(
-            getDirectionUseCase.invoke(origin, destination, directionType)
+            getDirectionUseCase.invoke(origin, destination, directionType, currentLanguage)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     _direction.value = Result.Success(it)

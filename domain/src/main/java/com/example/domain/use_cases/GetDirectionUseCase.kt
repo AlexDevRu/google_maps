@@ -7,7 +7,7 @@ import com.example.domain.repositories.IGoogleMapApiRepository
 import io.reactivex.Single
 
 class GetDirectionUseCase(private val googleMapApiRepository: IGoogleMapApiRepository) {
-    fun invoke(origin: Location, destination: Location, directionType: DIRECTION_TYPE): Single<Direction> {
-        return googleMapApiRepository.getDirection(origin, destination, directionType)
+    fun invoke(origin: Location, destination: Location, directionType: DIRECTION_TYPE, language: String?): Single<Direction> {
+        return googleMapApiRepository.getDirection(origin, destination, directionType, language)
     }
 }

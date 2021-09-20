@@ -12,6 +12,7 @@ interface GoogleMapApiService {
     @GET("place/details/json")
     fun getPlaceInfo(
         @Query("place_id") placeId: String,
+        @Query("language") lang: String,
         @Query("key") key: String = API_KEY
     ): Single<PlaceInfoResponse>
 
@@ -20,6 +21,7 @@ interface GoogleMapApiService {
         @Query("origin") origin: String,
         @Query("destination") destination: String,
         @Query("mode") directionType: String,
+        @Query("language") lang: String,
         @Query("key") key: String = API_KEY
     ): Single<DirectionResponse>
 }
