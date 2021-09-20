@@ -31,6 +31,8 @@ class GoogleMapUtil(
     companion object {
         private const val TAG = "GoogleMapUtil"
         private const val DEFAULT_ZOOM = 15f
+        private const val DEFAULT_LOCATION_INTERVAL = 5000L
+        private const val DEFAULT_FASTEST_LOCATION_INTERVAL = 3000L
     }
 
     private var googleMap: GoogleMap? = null
@@ -312,28 +314,9 @@ class GoogleMapUtil(
 
     @SuppressLint("MissingPermission")
     fun getDeviceLocation(deviceLocationChangedHandler: (LatLng) -> Unit) {
-        /*val placeFields = listOf(Place.Field.LAT_LNG)
-        val request = FindCurrentPlaceRequest.builder(placeFields).build()
-        if(checkCoarseAndFineLocationPermissions()) {
-            placesClient.findCurrentPlace(request)
-                .addOnSuccessListener { response: FindCurrentPlaceResponse ->
-                    for (placeLikelihood in response.placeLikelihoods) {
-                        Log.i(
-                            TAG, String.format(
-                                "current latlng: '%s'",
-                                placeLikelihood.place.latLng
-                            )
-                        )
-                        moveCamera(placeLikelihood.place.latLng!!)
-                    }
-                }.addOnFailureListener { exception: Exception? ->
-                    if (exception is ApiException) {
-                        Log.e(TAG, "Place not found: " + exception.statusCode)
-                    }
-                }
-        }*/
-
-        val locationRequest = LocationRequest().setInterval(5000).setFastestInterval(3000)
+        val locationRequest = LocationRequest()
+            .setInterval(DEFAULT_LOCATION_INTERVAL)
+            .setFastestInterval(DEFAULT_FASTEST_LOCATION_INTERVAL)
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
 
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest).setAlwaysShow(true)
@@ -355,7 +338,7 @@ class GoogleMapUtil(
                                 if(currentLocation == null) {
                                     moveCamera(newLocation)
                                 }
-                                //currentLocation = newLocation
+
                                 currentAddress = getAddress(newLocation)
                                 deviceLocationChangedHandler(currentLocation!!)
                             }
