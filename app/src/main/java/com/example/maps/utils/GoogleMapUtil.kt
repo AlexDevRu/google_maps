@@ -100,7 +100,10 @@ class GoogleMapUtil(
         }
 
 
-    var currentLocation: LatLng? = null
+    val currentLocation: LatLng?
+        get() = if(currentAddress != null) LatLng(currentAddress!!.latitude, currentAddress!!.longitude) else null
+
+    var currentAddress: Address? = null
         private set
 
 
@@ -352,7 +355,8 @@ class GoogleMapUtil(
                                 if(currentLocation == null) {
                                     moveCamera(newLocation)
                                 }
-                                currentLocation = newLocation
+                                //currentLocation = newLocation
+                                currentAddress = getAddress(newLocation)
                                 deviceLocationChangedHandler(currentLocation!!)
                             }
                         }

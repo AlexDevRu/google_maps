@@ -32,8 +32,11 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,6 +55,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
     private val args: MainFragmentArgs by navArgs()
 
+    private val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
+
     private var firstInit = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,7 +64,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         autocompleteFragment =
             childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
-        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocompleteFragment.setPlaceFields(placeFields)
         autocompleteFragment.setHint(getString(R.string.search))
 
         firstInit = savedInstanceState == null
@@ -134,9 +139,9 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
             if(viewModel.googleMapUtil.currentCameraPosition == null) {
                 viewModel.googleMapUtil.getDeviceLocation {
-                    val address = viewModel.googleMapUtil.getAddress(it)
-                    if (address != null) {
-                        autocompleteFragment.setCountry(address.countryCode)
+                    //val address = viewModel.googleMapUtil.getAddress(it)
+                    if (viewModel.googleMapUtil.currentAddress != null) {
+                        autocompleteFragment.setCountry(viewModel.googleMapUtil.currentAddress!!.countryCode)
                     }
                 }
             }
@@ -177,7 +182,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         binding.searchPlaceWrapper.voiceSearchButton.setOnClickListener {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            startActivityForResult(intent, Constants.SPEECH_REQUEST_CODE)
+            startActivityForResult(intent, Constants.SPEECH_RESULT_CODE)
         }
 
 
@@ -358,13 +363,31 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when(requestCode) {
-            Constants.SPEECH_REQUEST_CODE -> {
+            Constants.SPEECH_RESULT_CODE -> {
                 if(resultCode == AppCompatActivity.RESULT_OK) {
                     val list = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     val text = list?.firstOrNull()
                     text?.let {
-                        autocompleteFragment.setText(it)
+                        val intent = Autocomplete.IntentBuilder(
+                            AutocompleteActivityMode.OVERLAY, placeFields
+                        ).setInitialQuery(it)
+                            .setCountry(viewModel.googleMapUtil.currentAddress?.countryCode)
+                            .build(requireContext())
+                        startActivityForResult(intent, Constants.AUTOCOMPLETE_RESULT_CODE)
                     }
+                }
+            }
+            Constants.AUTOCOMPLETE_RESULT_CODE -> {
+                if(data == null) return
+
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    val place = Autocomplete.getPlaceFromIntent(data)
+                    Log.i(TAG, "Place: " + place.name + ", " + place.id)
+                    viewModel.setPlace(place)
+                } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                    // TODO: Handle the error.
+                    val status = Autocomplete.getStatusFromIntent(data)
+                    Log.i(TAG, status.statusMessage.orEmpty())
                 }
             }
         }
