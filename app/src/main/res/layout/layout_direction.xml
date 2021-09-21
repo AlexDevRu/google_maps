@@ -1,83 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/directionsContainer"
-    android:padding="12dp"
+    android:id="@+id/directionsChoosing"
     android:background="@color/white"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/originButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        app:strokeColor="@color/blue"
-        android:textColor="@color/blue"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/choose_origin"
+    <ImageView
+        android:id="@+id/iconArrowUp"
+        android:layout_width="wrap_content"
+        android:layout_height="34dp"
+        android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+        android:layout_gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/destinationButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        app:strokeColor="@color/rose"
-        android:textColor="@color/rose"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/choose_destination"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/originButton" />
+        android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/buildDirectionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/build_direction"
-        android:layout_marginTop="@dimen/medium_indent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/destinationButton" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <Spinner
-        android:id="@+id/directionTypeSpinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@id/buildDirectionButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/buildDirectionButton" />
+            <ImageView
+                android:id="@+id/originIcon"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_origin_marker"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
 
-    <TextView
-        android:id="@+id/duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_marginTop="@dimen/big_indent"
-        android:textSize="@dimen/medium_textsize"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buildDirectionButton" />
+            <Button
+                android:id="@+id/originButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/blue"
+                android:textColor="@color/blue"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/choose_origin"
+                app:layout_constraintTop_toTopOf="@id/originIcon"
+                app:layout_constraintStart_toEndOf="@id/originIcon"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
-    <TextView
-        android:id="@+id/distance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_marginTop="@dimen/small_indent"
-        app:layout_constraintTop_toBottomOf="@id/duration"
-        app:layout_constraintStart_toStartOf="parent"
-        android:textSize="@dimen/medium_textsize"/>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:visibility="gone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/duration"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buildDirectionButton" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageView
+                android:id="@+id/destinationIcon"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_destination_marker"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/originIcon"/>
+
+            <Button
+                android:id="@+id/destinationButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/rose"
+                android:textColor="@color/rose"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/choose_destination"
+                app:layout_constraintStart_toEndOf="@id/destinationIcon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/destinationIcon" />
+
+
+
+
+            <TextView
+                android:id="@+id/directionTypeTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="16sp"
+                app:layout_constraintTop_toBottomOf="@id/destinationIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                android:text="@string/type"/>
+
+            <Spinner
+                android:id="@+id/directionTypeSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@id/directionTypeTextView"
+                app:layout_constraintStart_toEndOf="@id/directionTypeTextView"
+                app:layout_constraintTop_toTopOf="@id/directionTypeTextView" />
+
+
+
+
+            <Button
+                android:id="@+id/buildDirectionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/medium_indent"
+                android:text="@string/build_direction"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/directionTypeTextView" />
+
+
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="@id/directionDataTable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/buildDirectionButton" />
+
+
+            <ir.androidexception.datatable.DataTable
+                android:id="@+id/directionDataTable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:header_gravity="center"
+                app:row_gravity="center"
+                app:header_vertical_padding="16dp"
+                app:header_horizontal_padding="0dp"
+                app:row_vertical_padding="16dp"
+                app:row_text_color="#000"
+                app:header_text_color="#000"
+                app:row_background_color="#fff"
+                app:header_background_color="#fff"
+                app:persian_number="false"
+                app:corner_radius="8dp"
+                app:shadow="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/buildDirectionButton"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

@@ -4,8 +4,14 @@
     <string name="title_activity_maps">Карты</string>
     <string name="search">Поиск</string>
 
-    <string name="total_distance"><![CDATA[<b>Общее расстояние:</b> %s км. %s м.]]></string>
-    <string name="total_duration"><![CDATA[<b>Общее время:</b> %s ч. %s мин.]]></string>
+    <!--<string name="total_distance"><![CDATA[<b>Общее расстояние:</b> %s км. %s м.]]></string>
+    <string name="total_duration"><![CDATA[<b>Общее время:</b> %s ч. %s мин.]]></string>-->
+
+    <string name="name">Название</string>
+    <string name="value">Значение</string>
+
+    <string name="total_distance">Общее расстояние</string>
+    <string name="total_duration">Общее время</string>
 
     <string name="distance"><![CDATA[<b>Расстояние:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Время:</b> %s]]></string>
@@ -33,6 +39,16 @@
     <string name="direction_button">Кнопка маршрута</string>
     <string name="info">Информация</string>
     <string name="photos">Фотографии</string>
+    <string name="type">Тип:</string>
+    <string name="reviews">Отзывы</string>
+
+    <string name="monday">Понедельние</string>
+    <string name="tuesday">Вторник</string>
+    <string name="wednesday">Среда</string>
+    <string name="thursday">Четверг</string>
+    <string name="friday">Пятница</string>
+    <string name="saturday">Суббота</string>
+    <string name="sunday">Воскресенье</string>
 
     <string-array name="direction_types">
         <item>автомобиль</item>

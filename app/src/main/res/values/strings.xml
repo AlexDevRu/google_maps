@@ -3,8 +3,14 @@
     <string name="title_activity_maps">Maps</string>
     <string name="search">Search</string>
 
-    <string name="total_distance"><![CDATA[<b>Total distance:</b> %s km. %s m.]]></string>
-    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s h. %s min.]]></string>
+    <!--<string name="total_distance"><![CDATA[<b>Total distance:</b> %s km. %s m.]]></string>
+    <string name="total_duration"><![CDATA[<b>Total duration:</b> %s h. %s min.]]></string>-->
+
+    <string name="name">Name</string>
+    <string name="value">Value</string>
+
+    <string name="total_distance">Total distance</string>
+    <string name="total_duration">Total duration</string>
 
     <string name="distance"><![CDATA[<b>Distance:</b> %s]]></string>
     <string name="duration"><![CDATA[<b>Duration:</b> %s]]></string>
@@ -31,6 +37,16 @@
     <string name="direction_button">Direction button</string>
     <string name="info">Info</string>
     <string name="photos">Photos</string>
+    <string name="type">Type:</string>
+    <string name="reviews">Reviews</string>
+
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
 
     <string-array name="direction_types">
         <item>driving</item>

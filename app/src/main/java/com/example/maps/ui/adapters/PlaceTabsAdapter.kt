@@ -6,14 +6,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.maps.ui.fragments.place_info.PlaceInfoFragment
 import com.example.maps.ui.fragments.place_info.PlacePhotosFragment
+import com.example.maps.ui.fragments.place_info.PlaceReviewsFragment
 
 class PlaceTabsAdapter(fragmentManager: FragmentManager, lifeCycle: Lifecycle):
     FragmentStateAdapter(fragmentManager, lifeCycle) {
 
-    override fun getItemCount(): Int = 2
+    override fun getItemCount(): Int = 3
 
     override fun createFragment(position: Int): Fragment {
-        if(position == 0) return PlaceInfoFragment()
-        return PlacePhotosFragment()
+        return when(position) {
+            0 -> PlaceInfoFragment()
+            1 -> PlacePhotosFragment()
+            else -> PlaceReviewsFragment()
+        }
     }
 }

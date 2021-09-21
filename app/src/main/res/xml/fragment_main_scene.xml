@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<MotionScene 
+<MotionScene
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:motion="http://schemas.android.com/apk/res-auto">
-
-    <Transition
-        android:id="@+id/expandPlaceInfoTransition"
-        motion:constraintSetEnd="@id/fullVisiblePlaceInfo"
-        motion:constraintSetStart="@id/particallyVisiblePlaceInfo"
-        motion:duration="400">
-       <KeyFrameSet>
-       </KeyFrameSet>
-        <OnSwipe motion:touchAnchorId="@+id/placeInfo" motion:touchRegionId="@id/placeInfo"
-            motion:dragDirection="dragUp" motion:touchAnchorSide="top" />
-    </Transition>
 
     <Transition
         android:id="@+id/showPlaceInfoTransition"
@@ -24,13 +13,39 @@
     </Transition>
 
     <Transition
-        android:id="@+id/directionsTransition"
-        motion:constraintSetEnd="@id/visibleDirections"
+        android:id="@+id/expandPlaceInfoTransition"
+        motion:constraintSetEnd="@id/fullVisiblePlaceInfo"
+        motion:constraintSetStart="@id/particallyVisiblePlaceInfo"
+        motion:duration="400">
+        <KeyFrameSet>
+        </KeyFrameSet>
+        <OnSwipe motion:touchAnchorId="@+id/placeInfo" motion:touchRegionId="@id/placeInfo"
+            motion:dragDirection="dragUp" motion:touchAnchorSide="top" />
+    </Transition>
+
+
+
+    <Transition
+        android:id="@+id/showDirectionsTransition"
+        motion:constraintSetEnd="@id/particallyVisibleDirections"
         motion:constraintSetStart="@id/hiddenDirections"
         motion:duration="400">
         <KeyFrameSet>
         </KeyFrameSet>
     </Transition>
+
+    <Transition
+        android:id="@+id/expandDirectionsTransition"
+        motion:constraintSetEnd="@id/fullVisibleDirections"
+        motion:constraintSetStart="@id/particallyVisibleDirections"
+        motion:duration="400">
+        <KeyFrameSet>
+        </KeyFrameSet>
+        <OnSwipe motion:touchAnchorId="@+id/directionsChoosing" motion:touchRegionId="@id/directionsChoosing"
+            motion:dragDirection="dragUp" motion:touchAnchorSide="top" />
+    </Transition>
+
+
 
 
 
@@ -62,7 +77,7 @@
             android:id="@+id/placeInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-40dp"
+            android:layout_marginTop="-34dp"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="parent" />
@@ -113,13 +128,33 @@
             motion:layout_constraintTop_toBottomOf="parent" />
     </ConstraintSet>
 
-    <ConstraintSet android:id="@+id/visibleDirections">
+    <ConstraintSet android:id="@+id/particallyVisibleDirections">
         <Constraint
             android:id="@+id/directionsChoosing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-34dp"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="parent" />
+        <Constraint
+            android:id="@+id/placeInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="parent" />
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/fullVisibleDirections">
+        <Constraint
+            android:id="@+id/directionsChoosing"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/directionsButton"
             motion:layout_constraintBottom_toBottomOf="parent" />
         <Constraint
             android:id="@+id/placeInfo"

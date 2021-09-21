@@ -3,12 +3,15 @@ package com.example.maps.ui.fragments.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.SimpleCursorAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
@@ -21,6 +24,7 @@ import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
 import com.example.maps.mappers.toModel
 import com.example.maps.ui.adapters.PlaceTabsAdapter
+import com.example.maps.ui.adapters.SearchPlaceAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.GoogleMapUtil
@@ -37,8 +41,11 @@ import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
+import ir.androidexception.datatable.model.DataTableHeader
+import ir.androidexception.datatable.model.DataTableRow
 
 
 @AndroidEntryPoint
@@ -61,13 +68,22 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        //binding.searchPlaceWrapper.searchTextView.
+
         autocompleteFragment =
             childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
         autocompleteFragment.setPlaceFields(placeFields)
-        autocompleteFragment.setHint(getString(R.string.search))
+        //autocompleteFragment.setHint(getString(R.string.search))
+        updateMapMode()
 
         firstInit = savedInstanceState == null
+
+        //binding.searchPlaceWrapper.searchView.suggestionsAdapter
+        //val suggAdapter = SimpleCursorAdapter(requireContext(), R.layout.layout_direction, null, null, null, 0)
+        //binding.searchPlaceWrapper.
+        /*val adapter = SearchPlaceAdapter()
+        binding.searchPlaceWrapper.searchTextView.setAdapter(adapter)*/
 
         checkLocationPermission()
     }
@@ -139,7 +155,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
             if(viewModel.googleMapUtil.currentCameraPosition == null) {
                 viewModel.googleMapUtil.getDeviceLocation {
-                    //val address = viewModel.googleMapUtil.getAddress(it)
                     if (viewModel.googleMapUtil.currentAddress != null) {
                         autocompleteFragment.setCountry(viewModel.googleMapUtil.currentAddress!!.countryCode)
                     }
@@ -167,7 +182,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             viewModel.getInfoByLocation(it)
         }
 
-        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+       autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 Log.i(TAG, "Place: " + place.name + ", " + place.id + ", " + place.latLng)
                 if(place.latLng != null) {
@@ -194,10 +209,12 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         binding.directionsChoosing.originButton.setOnClickListener {
             viewModel.googleMapUtil.currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.ORIGIN
+            updateMapMode()
         }
 
         binding.directionsChoosing.destinationButton.setOnClickListener {
             viewModel.googleMapUtil.currentDirectionMarker = GoogleMapUtil.DIRECTION_MARKER.DESTINATION
+            updateMapMode()
         }
 
         binding.directionsChoosing.buildDirectionButton.setOnClickListener {
@@ -211,6 +228,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             } else {
                 binding.directionsChoosing.originButton.text = getString(R.string.choose_origin)
             }
+            setDirectionButtonEnable()
         }
 
         viewModel.googleMapUtil.destinationChangeListener = {
@@ -220,11 +238,46 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             } else {
                 binding.directionsChoosing.originButton.text = getString(R.string.choose_destination)
             }
+            setDirectionButtonEnable()
         }
 
         initDirectionTypes()
 
+        setDirectionButtonEnable()
+
         observe()
+    }
+
+    private fun setDirectionButtonEnable() {
+        binding.directionsChoosing.buildDirectionButton.isEnabled =
+            viewModel.googleMapUtil.origin != null && viewModel.googleMapUtil.destination != null
+    }
+
+    private fun updateMapMode() {
+        if(viewModel.currentMapMode.value == GoogleMapUtil.MAP_MODE.DIRECTION
+            && viewModel.googleMapUtil.currentDirectionMarker == GoogleMapUtil.DIRECTION_MARKER.ORIGIN) {
+
+                autocompleteFragment.setHint(resources.getString(R.string.choose_origin))
+                highlightDirectionButton(binding.directionsChoosing.originButton as MaterialButton, true)
+                highlightDirectionButton(binding.directionsChoosing.destinationButton as MaterialButton, false)
+        }
+        else if(viewModel.currentMapMode.value == GoogleMapUtil.MAP_MODE.DIRECTION
+            && viewModel.googleMapUtil.currentDirectionMarker == GoogleMapUtil.DIRECTION_MARKER.DESTINATION) {
+
+                autocompleteFragment.setHint(resources.getString(R.string.choose_destination))
+                highlightDirectionButton(binding.directionsChoosing.originButton as MaterialButton, false)
+                highlightDirectionButton(binding.directionsChoosing.destinationButton as MaterialButton, true)
+        }
+        else {
+            autocompleteFragment.setHint(resources.getString(R.string.search))
+        }
+    }
+
+    private fun highlightDirectionButton(button: MaterialButton, highlight: Boolean) {
+        val highlightColor = if(highlight) R.color.rose else R.color.blue
+
+        button.setStrokeColorResource(highlightColor)
+        button.setTextColor(ContextCompat.getColor(requireContext(), highlightColor))
     }
 
     private fun initDirectionTypes() {
@@ -308,13 +361,11 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         viewModel.direction.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-                    binding.directionsChoosing.duration.hide()
-                    binding.directionsChoosing.distance.hide()
+                    binding.directionsChoosing.directionDataTable.hide()
                     binding.directionsChoosing.progressBar.show()
                 }
                 is Result.Success -> {
-                    binding.directionsChoosing.duration.show()
-                    binding.directionsChoosing.distance.show()
+                    binding.directionsChoosing.directionDataTable.show()
                     binding.directionsChoosing.progressBar.hide()
 
                     val direction = it.value
@@ -335,29 +386,48 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 if(viewModel.currentPlaceId == null)
                     binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
                 else {
-                    binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                     binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
+                    binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
                 }
+
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_directions_car_24)
+
+                updateMapMode()
             } else {
-                binding.motionLayout.transitionToState(R.id.visibleDirections)
+                binding.motionLayout.setTransition(R.id.expandDirectionsTransition)
+                binding.motionLayout.transitionToState(R.id.particallyVisibleDirections)
                 binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
+                updateMapMode()
             }
         }
     }
 
     private fun updateDirectionInfo(direction: Direction) {
-        val km = direction.total_distance / 1000
-        val metres = direction.total_distance % 1000
+        val header = DataTableHeader.Builder()
+            .item(resources.getString(R.string.name), 1)
+            .item(resources.getString(R.string.value), 1)
+        .build()
 
-        val hours = direction.total_duration / 3600
-        val minutes = direction.total_duration % 3600 / 60
+        val rows = ArrayList<DataTableRow>()
 
-        val distance = resources.getString(R.string.total_distance, km.toString(), metres.toString())
-        val duration = resources.getString(R.string.total_duration, hours.toString(), minutes.toString())
+        val distanceRow = DataTableRow.Builder()
+            .value(resources.getString(R.string.total_distance))
+            .value(direction.total_distance?.text)
+            .build()
+        rows.add(distanceRow)
 
-        binding.directionsChoosing.distance.setHtml(distance)
-        binding.directionsChoosing.duration.setHtml(duration)
+        val durationRow = DataTableRow.Builder()
+            .value(resources.getString(R.string.total_duration))
+            .value(direction.total_duration?.text)
+            .build()
+        rows.add(durationRow)
+
+        binding.directionsChoosing.directionDataTable.header = header
+        binding.directionsChoosing.directionDataTable.rows = rows
+
+        binding.directionsChoosing.directionDataTable.typeface = Typeface.SANS_SERIF
+
+        binding.directionsChoosing.directionDataTable.inflate(requireContext());
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
+import com.example.maps.R
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
@@ -31,5 +32,17 @@ object Utils {
         vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
         vectorDrawable.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    fun getWeekDayByNumber(n: Int): Int {
+        return when(n) {
+            0 -> R.string.monday
+            1 -> R.string.tuesday
+            2 -> R.string.wednesday
+            3 -> R.string.thursday
+            4 -> R.string.friday
+            5 -> R.string.saturday
+            else -> R.string.sunday
+        }
     }
 }

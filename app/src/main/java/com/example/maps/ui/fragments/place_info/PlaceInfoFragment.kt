@@ -1,5 +1,6 @@
 package com.example.maps.ui.fragments.place_info
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
@@ -14,26 +15,25 @@ import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
+import com.example.maps.utils.Utils
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
 import dagger.hilt.android.AndroidEntryPoint
+import ir.androidexception.datatable.model.DataTableHeader
+import ir.androidexception.datatable.model.DataTableRow
 
 @AndroidEntryPoint
 class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBinding::inflate) {
 
+    companion object {
+        private const val TAG = "PlaceInfoFragment"
+    }
+
     private val mainVM: MainVM by activityViewModels()
 
-    private lateinit var reviewAdapter: ReviewAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        reviewAdapter = ReviewAdapter()
-        binding.reviewsList.adapter = reviewAdapter
-
-        binding.reviewsList.retryHandler = {
-            mainVM.retry()
-        }
-
         observe()
     }
 
@@ -45,10 +45,9 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
                 }
                 is Result.Success -> {
                     binding.root.visibility = View.VISIBLE
-                    binding.reviewsList.isLoading = false
 
                     val place = it.value
-                    Log.w("MapsActivity", "place found: ${place}")
+                    Log.w(TAG, "place found: ${place}")
 
                     setCurrentPlaceData(place)
                 }
@@ -56,7 +55,7 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         }
 
         mainVM.currentPlaceFavorite.observe(viewLifecycleOwner) {
-            Log.e("MapsActivity", "currentPlaceFavorite observer $it")
+            Log.e(TAG, "currentPlaceFavorite observer $it")
             when(it) {
                 is Result.Loading -> {
                     binding.markdownProgressBar.show()
@@ -101,10 +100,38 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
             binding.placeWebsite.visibility = View.GONE
         }
 
-        binding.placeRating.rating = place.rating?.toFloat() ?: 0f
-        binding.ratingText.text = if(place.rating != null) "%.1f".format(place.rating) else "0"
+        if(place.openingHours != null) {
+            val header = DataTableHeader.Builder()
+                .item("", 1)
+                .item("", 1)
+                .build()
 
-        reviewAdapter.submitList(place.reviews)
-        binding.reviewsList.isResultEmpty = place.reviews.isNullOrEmpty()
+            Log.w(TAG, "${place.openingHours}")
+
+            val rows = ArrayList<DataTableRow>()
+
+            val sortedOpeningHours = place.openingHours!!.periods?.sortedBy { it.open?.day }
+
+            for(period in sortedOpeningHours.orEmpty()) {
+
+                val openTime = period.open?.time
+                val closeTime = period.close?.time
+
+                val weekDayRes = Utils.getWeekDayByNumber(period.open?.day!!)
+
+                val row = DataTableRow.Builder()
+                    .value(resources.getString(weekDayRes))
+                    .value("${openTime?.substring(0, 2)}:${openTime?.substring(2, 4)} - ${closeTime?.substring(0, 2)}:${closeTime?.substring(2, 4)}")
+                    .build()
+                rows.add(row)
+            }
+
+            binding.openingHoursDataTable.header = header
+            binding.openingHoursDataTable.rows = rows
+
+            binding.openingHoursDataTable.typeface = Typeface.SANS_SERIF
+
+            binding.openingHoursDataTable.inflate(requireContext());
+        }
     }
 }

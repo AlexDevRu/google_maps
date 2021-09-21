@@ -21,12 +21,19 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.maps.android.PolyUtil
 
 
 class GoogleMapUtil(
     private val context: Context
 ) {
+
+    private val internetObserver = InternetUtil(context)
 
     companion object {
         private const val TAG = "GoogleMapUtil"
@@ -36,6 +43,8 @@ class GoogleMapUtil(
     }
 
     private var googleMap: GoogleMap? = null
+
+    private val placesClient = Places.createClient(context)
 
     val colors = listOf(R.color.black, R.color.green, R.color.red, R.color.teal_700, R.color.purple_500, R.color.orange)
 
@@ -102,8 +111,13 @@ class GoogleMapUtil(
         }
 
 
-    val currentLocation: LatLng?
-        get() = if(currentAddress != null) LatLng(currentAddress!!.latitude, currentAddress!!.longitude) else null
+    var currentLocation: LatLng? = null
+        private set(value) {
+            field = value
+            if(internetObserver.isInternetOn() && field != null) {
+                currentAddress = getAddress(field!!)
+            }
+        }
 
     var currentAddress: Address? = null
         private set
@@ -230,7 +244,7 @@ class GoogleMapUtil(
             val list =  Geocoder(context)
                 .getFromLocation(latLng.latitude, latLng.longitude, 1)
             val currentAddress = list.firstOrNull()
-            Log.w(TAG, "currentAddress: ${currentAddress}")
+            Log.w(TAG, "currentAddress: ${currentAddress?.locale}")
             currentAddress
         } catch (e: Exception) {
             Log.w(TAG, "getAddress exception: ${e}")
@@ -339,8 +353,9 @@ class GoogleMapUtil(
                                     moveCamera(newLocation)
                                 }
 
-                                currentAddress = getAddress(newLocation)
-                                deviceLocationChangedHandler(currentLocation!!)
+                                currentLocation = newLocation
+
+                                deviceLocationChangedHandler(newLocation)
                             }
                         }
                     }, Looper.getMainLooper())
@@ -349,6 +364,25 @@ class GoogleMapUtil(
 
             } catch (e: ApiException) {
                 Log.e(TAG, "getDeviceLocation: SecurityException: " + e.message)
+            }
+        }
+    }
+
+    fun getAutocompletePredictions(query: String, successHandler: (List<AutocompletePrediction>) -> Unit, failureHandler: (ApiException) -> Unit) {
+        val token = AutocompleteSessionToken.newInstance()
+        val request =
+            FindAutocompletePredictionsRequest.builder()
+                .setTypeFilter(TypeFilter.ADDRESS)
+                .setSessionToken(token)
+                .setQuery(query)
+                .build()
+
+        placesClient.findAutocompletePredictions(request).addOnSuccessListener {
+            successHandler(it.autocompletePredictions)
+        }.addOnFailureListener {
+            if (it is ApiException) {
+                Log.e(TAG, "Place not found: " + it.statusCode)
+                failureHandler(it)
             }
         }
     }

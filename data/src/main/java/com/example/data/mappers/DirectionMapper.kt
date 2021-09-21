@@ -5,26 +5,13 @@ import com.example.data.api.responses.directions.*
 import com.example.domain.models.directions.Direction
 
 fun DirectionResponse.toModel(): Direction {
-    var dist = 0
-    var dur = 0
-
-    for(d in routes.orEmpty()) {
-        for(i in d.legs) {
-            dist += i.distance.value
-        }
-    }
-
-    for(d in routes.orEmpty()) {
-        for(i in d.legs) {
-            dur += i.duration.value
-        }
-    }
+    val leg = routes?.firstOrNull()?.legs?.firstOrNull()
 
     return Direction(
         bounds = bounds?.toModel(),
         routes = routes?.map { it.toModel() },
-        total_distance = dist,
-        total_duration = dur,
+        total_distance = leg?.distance?.toModel(),
+        total_duration = leg?.duration?.toModel(),
         status = status
     )
 }

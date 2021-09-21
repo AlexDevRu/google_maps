@@ -9,6 +9,8 @@ import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
+import com.example.maps.utils.extensions.hide
+import com.example.maps.utils.extensions.show
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,13 +22,13 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        photosAdapter = PlacePhotosAdapter()
+        photosAdapter = PlacePhotosAdapter({ startPostponedEnterTransition() })
         binding.placePhotosList.adapter = photosAdapter
 
         binding.placePhotosList.retryHandler = {
             mainVM.retry()
         }
-        binding.placePhotosList.prepareToSharedTransition(this)
+        binding.placePhotosList.prepareToSharedTransition(parentFragment ?: this)
 
         observe()
     }
@@ -35,10 +37,10 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
         mainVM.placeData.observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
-                    binding.placePhotosList.visibility = View.GONE
+                    binding.placePhotosList.isLoading = true
                 }
                 is Result.Success -> {
-                    binding.placePhotosList.visibility = View.VISIBLE
+                    binding.placePhotosList.isLoading = false
                     val place = it.value
                     updatePhotos(place.photos)
                 }
