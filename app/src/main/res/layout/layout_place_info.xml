@@ -18,7 +18,7 @@
             android:layout_marginEnd="@dimen/medium_indent"
             android:textSize="@dimen/medium_textsize"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/markdownButton"
+            app:layout_constraintEnd_toStartOf="@id/barrier"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Name" />
