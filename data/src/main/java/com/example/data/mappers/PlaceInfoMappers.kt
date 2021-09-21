@@ -5,20 +5,20 @@ import com.example.domain.models.place_info.PlaceInfo
 
 fun PlaceInfoResponse.toModel(): PlaceInfo {
     return PlaceInfo(
-        address = result?.formatted_address,
-        phoneNumber = result?.formatted_phone_number,
-        name = result?.name,
-        openingHours = result?.opening_hours?.toModel(),
-        photos = result?.photos?.map { it.toModel() },
-        placeId = result?.place_id,
-        rating = result?.rating,
-        reviews = result?.reviews?.map { it.toModel() },
-        types = result?.types,
-        url = result?.url,
-        userRatingsTotal = result?.user_ratings_total,
-        utcOffset = result?.utc_offset,
-        website = result?.website,
-        location = result?.geometry?.location?.toModel()
+        address = result.formatted_address,
+        phoneNumber = result.formatted_phone_number,
+        name = result.name,
+        openingHours = result.opening_hours?.toModel(),
+        photos = result.photos?.map { it.toModel() },
+        placeId = result.place_id,
+        rating = result.rating,
+        reviews = result.reviews?.map { it.toModel() },
+        types = result.types,
+        url = result.url,
+        userRatingsTotal = result.user_ratings_total,
+        utcOffset = result.utc_offset,
+        website = result.website,
+        location = result.geometry?.location?.toModel()
     )
 }
 
@@ -41,15 +41,15 @@ fun OpeningHours.toModel(): com.example.domain.models.place_info.OpeningHours {
 
 fun Period.toModel(): com.example.domain.models.place_info.Period {
     return com.example.domain.models.place_info.Period(
-        close = close?.toModel(),
-        open = open?.toModel()
+        close = close.toModel(),
+        open = open.toModel()
     )
 }
 
 fun Time.toModel(): com.example.domain.models.place_info.Time {
     return com.example.domain.models.place_info.Time(
         day = day,
-        time = time
+        time = "${time.substring(0, 2)}:${time.substring(2, 4)}"
     )
 }
 

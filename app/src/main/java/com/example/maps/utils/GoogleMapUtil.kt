@@ -14,6 +14,7 @@ import androidx.annotation.ColorRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.domain.models.directions.Direction
+import com.example.domain.models.directions.Step
 import com.example.maps.R
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
 import com.google.android.gms.common.api.ApiException
@@ -27,51 +28,12 @@ import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.maps.android.PolyUtil
+import io.reactivex.subjects.BehaviorSubject
 
 
 class GoogleMapUtil(
     private val context: Context
 ) {
-
-    private val internetObserver = InternetUtil(context)
-
-    companion object {
-        private const val TAG = "GoogleMapUtil"
-        private const val DEFAULT_ZOOM = 15f
-        private const val DEFAULT_LOCATION_INTERVAL = 5000L
-        private const val DEFAULT_FASTEST_LOCATION_INTERVAL = 3000L
-    }
-
-    private var googleMap: GoogleMap? = null
-
-    private val placesClient = Places.createClient(context)
-
-    val colors = listOf(R.color.black, R.color.green, R.color.red, R.color.teal_700, R.color.purple_500, R.color.orange)
-
-    @SuppressLint("PotentialBehaviorOverride")
-    fun initMap(googleMap: GoogleMap) {
-        this.googleMap = googleMap
-        printInfo()
-        if(markerMode == MAP_MODE.PLACE) {
-            if(placeMarker != null)
-                createPlaceMarker(placeMarker!!.position)
-        } else {
-            origin?.let { createOriginMarker(it.position) }
-            destination?.let { createDestinationMarker(it.position) }
-        }
-        googleMap.setOnCameraMoveListener {
-            currentCameraPosition = this.googleMap?.cameraPosition?.target
-        }
-        googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter(context))
-    }
-
-    fun printInfo() {
-        Log.w(TAG, "markerMode: ${markerMode}")
-        Log.w(TAG, "origin: ${origin?.position}")
-        Log.w(TAG, "destination: ${destination?.position}")
-        Log.w(TAG, "placeMarker: ${placeMarker?.position}")
-    }
-
     enum class MAP_MODE {
         DIRECTION, PLACE
     }
@@ -80,56 +42,87 @@ class GoogleMapUtil(
         ORIGIN, DESTINATION
     }
 
+    companion object {
+        private const val TAG = "GoogleMapUtil"
+
+        private const val DEFAULT_ZOOM = 15f
+        private const val DEFAULT_LOCATION_INTERVAL = 5000L
+        private const val DEFAULT_FASTEST_LOCATION_INTERVAL = 3000L
+
+        private const val DEFAULT_POLYLINE_WIDTH = 8f
+
+        private val colors = listOf(
+            R.color.black,
+            R.color.green,
+            R.color.red,
+            R.color.teal_700,
+            R.color.purple_500,
+            R.color.orange
+        )
+    }
+
+    private lateinit var googleMap: GoogleMap
+
+    private val placesClient = Places.createClient(context)
+
+    private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
     var currentCameraPosition: LatLng? = null
         private set
 
-    var originChangeListener: (() -> Unit)? = null
-        set(value) {
-            field = value
-            if(origin != null) field?.invoke()
-        }
 
-    var destinationChangeListener: (() -> Unit)? = null
-        set(value) {
-            field = value
-            if(destination != null) field?.invoke()
-        }
+    val placeMarker = BehaviorSubject.create<Marker>()
 
-    var placeMarker: Marker? = null
-        private set
+    val origin = BehaviorSubject.create<Marker>()
+    val destination = BehaviorSubject.create<Marker>()
 
-    var origin: Marker? = null
-        private set(value) {
-            field = value
-            originChangeListener?.invoke()
-        }
+    val currentLocation = BehaviorSubject.create<LatLng>()
 
-    var destination: Marker? = null
-        private set(value) {
-            field = value
-            destinationChangeListener?.invoke()
-        }
+    var currentDirectionMarker = BehaviorSubject.createDefault(DIRECTION_MARKER.DESTINATION)
 
 
-    var currentLocation: LatLng? = null
-        private set(value) {
-            field = value
-            if(internetObserver.isInternetOn() && field != null) {
-                currentAddress = getAddress(field!!)
-            }
-        }
+    private val _directionPolylines = mutableMapOf<Polyline, Marker>()
+    val directionPolylines: Map<Polyline, Marker> = _directionPolylines
 
-    var currentAddress: Address? = null
-        private set
+    private val _stepMap = mutableMapOf<Step, Polyline>()
+    val stepMap: Map<Step, Polyline> = _stepMap
+
+    var mapClickHandler: ((String) -> Unit)? = null
 
 
-    private val directionPolylines = hashMapOf<Polyline, Marker>()
 
     var markerMode = MAP_MODE.PLACE
         set(value) {
             field = value
             changeMarkerMode(field)
         }
+
+
+    @SuppressLint("PotentialBehaviorOverride")
+    fun initMap(googleMap: GoogleMap) {
+        this.googleMap = googleMap
+        printInfo()
+        if(markerMode == MAP_MODE.PLACE) {
+            if(placeMarker.value != null)
+                createPlaceMarker(placeMarker.value!!.position)
+        } else {
+            origin.value?.let { createOriginMarker(it.position) }
+            destination.value?.let { createDestinationMarker(it.position) }
+        }
+        googleMap.setOnCameraMoveListener {
+            currentCameraPosition = this.googleMap.cameraPosition.target
+        }
+        googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter(context))
+    }
+
+    fun printInfo() {
+        Log.w(TAG, "markerMode: ${markerMode}")
+        Log.w(TAG, "origin: ${origin.value?.position}")
+        Log.w(TAG, "destination: ${destination.value?.position}")
+        Log.w(TAG, "placeMarker: ${placeMarker.value?.position}")
+    }
+
+
 
     private fun changeMarkerMode(mode: MAP_MODE) {
         val isDirection = mode == MAP_MODE.DIRECTION
@@ -138,58 +131,64 @@ class GoogleMapUtil(
             it.value.isVisible = isDirection
         }
         Log.e(TAG, "markerMode direction: ${isDirection}")
-        if(isDirection && placeMarker != null) {
-            createDestinationMarker(placeMarker!!.position)
+        if(isDirection && placeMarker.value != null) {
+            createDestinationMarker(placeMarker.value!!.position)
         }
-        if(isDirection && currentLocation != null) {
-            createOriginMarker(currentLocation!!)
+        if(isDirection && currentLocation.value != null) {
+            createOriginMarker(currentLocation.value!!)
         }
-        origin?.isVisible = isDirection
-        destination?.isVisible = isDirection
+        origin.value?.isVisible = isDirection
+        destination.value?.isVisible = isDirection
         directionPolylines.keys.forEach {
-            Log.d(TAG, "hfdgkjhdfkgjhdkjghdfkjgh")
             it.isVisible = isDirection
             it.isClickable = isDirection
         }
         printInfo()
     }
 
-    var currentDirectionMarker = DIRECTION_MARKER.DESTINATION
 
-    private val fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-
-    var mapClickHandler: ((String) -> Unit)? = null
 
     fun moveCamera(latLng: LatLng, zoom: Float = DEFAULT_ZOOM) {
         Log.d(
             TAG,
             "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude
         )
-        googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
     fun createPlaceMarker(latLng: LatLng) {
-        placeMarker?.remove()
-        placeMarker = createMarker(latLng, null)
-        placeMarker?.isVisible = markerMode == MAP_MODE.PLACE
+        placeMarker.value?.remove()
+
+        val newPlaceMarker = createMarker(latLng, null)
+
+        newPlaceMarker?.let {
+            it.isVisible = markerMode == MAP_MODE.PLACE
+            placeMarker.onNext(it)
+        }
     }
 
     @SuppressLint("PotentialBehaviorOverride")
     fun createOriginMarker(latLng: LatLng) {
-        origin?.remove()
+        origin.value?.remove()
 
         val icon = Utils.getBitmapFromVector(context, R.drawable.ic_origin_marker)
-        origin = createMarker(latLng, null, icon, null)
-        origin?.isVisible = markerMode == MAP_MODE.DIRECTION
+        val newOrigin = createMarker(latLng, null, icon, null)
+        newOrigin?.let {
+            it.isVisible = markerMode == MAP_MODE.DIRECTION
+            origin.onNext(it)
+        }
     }
 
     @SuppressLint("PotentialBehaviorOverride")
     fun createDestinationMarker(latLng: LatLng) {
-        destination?.remove()
+        destination.value?.remove()
 
         val icon = Utils.getBitmapFromVector(context, R.drawable.ic_destination_marker)
-        destination = createMarker(latLng, null, icon, null)
-        destination?.isVisible = markerMode == MAP_MODE.DIRECTION
+        val newDestination = createMarker(latLng, null, icon, null)
+        newDestination?.let {
+            it.isVisible = markerMode == MAP_MODE.DIRECTION
+            destination.onNext(it)
+        }
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -199,14 +198,14 @@ class GoogleMapUtil(
         markerOptions.title(title)
         markerOptions.snippet(snippet)
         markerOptions.icon(markerIcon ?: BitmapDescriptorFactory.defaultMarker())
-        return googleMap?.addMarker(markerOptions)
+        return googleMap.addMarker(markerOptions)
     }
 
     @SuppressLint("MissingPermission")
     fun setDefaultSettings(): Boolean {
         if (checkCoarseAndFineLocationPermissions()) {
-            googleMap?.isMyLocationEnabled = true
-            googleMap?.uiSettings?.isMyLocationButtonEnabled = false
+            googleMap.isMyLocationEnabled = true
+            googleMap.uiSettings.isMyLocationButtonEnabled = false
             return true
         }
         return false
@@ -218,20 +217,19 @@ class GoogleMapUtil(
     }
 
     fun initTouchEvents() {
-        googleMap?.setOnPolylineClickListener {
+        googleMap.setOnPolylineClickListener {
             val marker = directionPolylines[it]
             marker?.showInfoWindow()
-            if(marker != null) moveCamera(marker.position, googleMap!!.cameraPosition.zoom)
+            if(marker != null) moveCamera(marker.position, googleMap.cameraPosition.zoom)
         }
 
-        googleMap?.setOnPoiClickListener {
+        googleMap.setOnPoiClickListener {
 
             if(markerMode == MAP_MODE.PLACE) {
-                placeMarker?.remove()
-                placeMarker = createMarker(it.latLng, it.name)
+                createPlaceMarker(it.latLng)
                 mapClickHandler?.invoke(it.placeId)
             } else {
-                if(currentDirectionMarker == DIRECTION_MARKER.ORIGIN)
+                if(currentDirectionMarker.value == DIRECTION_MARKER.ORIGIN)
                     createOriginMarker(it.latLng)
                 else
                     createDestinationMarker(it.latLng)
@@ -254,28 +252,30 @@ class GoogleMapUtil(
 
     private fun addPolylineToMap(polylineList: List<LatLng>, @ColorRes color: Int = R.color.black): Polyline? {
         val polylineOptions = PolylineOptions()
+
         polylineOptions.color(ContextCompat.getColor(context, color))
-        polylineOptions.width(8f)
+        polylineOptions.width(DEFAULT_POLYLINE_WIDTH)
         polylineOptions.startCap(ButtCap())
         polylineOptions.jointType(JointType.ROUND)
         polylineOptions.clickable(true)
         polylineOptions.addAll(polylineList)
 
-        return googleMap?.addPolyline(polylineOptions)
+        return googleMap.addPolyline(polylineOptions)
     }
 
-    fun createDirection(direction: Direction) {
+    fun createDirection(direction: Direction): Map<Step, Polyline>? {
         if(direction.routes.isNullOrEmpty())
-            return
+            return null
 
-        directionPolylines.forEach {
+        _stepMap.clear()
+
+        _directionPolylines.forEach {
             it.key.remove()
             it.value.remove()
         }
-        directionPolylines.clear()
+        _directionPolylines.clear()
 
         for (route in direction.routes!!) {
-            //polylineList.addAll(PolyUtil.decode(route.overview_polyline.points))
             for(leg in route.legs) {
                 for((currentColorIndex, step) in leg.steps.orEmpty().withIndex()) {
                     val polylineList = mutableListOf<LatLng>()
@@ -295,9 +295,12 @@ class GoogleMapUtil(
                         val marker = createMarker(midPoint, distance, invisibleMarker,
                             "${duration}\n\n${step.html_instructions}")
 
-                        marker?.position = midPoint
+                        marker?.let {
+                            it.position = midPoint
+                            _directionPolylines[polyline] = it
+                        }
 
-                        if(marker != null) directionPolylines[polyline] = marker
+                        _stepMap[step] = polyline
                     }
                 }
             }
@@ -317,17 +320,19 @@ class GoogleMapUtil(
                 )
             )
 
-            googleMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
         }
 
         directionPolylines.keys.forEach {
             it.isVisible = markerMode == MAP_MODE.DIRECTION
             it.isClickable = markerMode == MAP_MODE.DIRECTION
         }
+
+        return _stepMap
     }
 
     @SuppressLint("MissingPermission")
-    fun getDeviceLocation(deviceLocationChangedHandler: (LatLng) -> Unit) {
+    fun getDeviceLocation() {
         val locationRequest = LocationRequest()
             .setInterval(DEFAULT_LOCATION_INTERVAL)
             .setFastestInterval(DEFAULT_FASTEST_LOCATION_INTERVAL)
@@ -349,13 +354,11 @@ class GoogleMapUtil(
                                 val lng = locationResult.lastLocation.longitude
 
                                 val newLocation = LatLng(lat, lng)
-                                if(currentLocation == null) {
+                                if(currentLocation.value == null) {
                                     moveCamera(newLocation)
                                 }
 
-                                currentLocation = newLocation
-
-                                deviceLocationChangedHandler(newLocation)
+                                currentLocation.onNext(newLocation)
                             }
                         }
                     }, Looper.getMainLooper())
@@ -388,6 +391,6 @@ class GoogleMapUtil(
     }
 
     fun moveCameraToCurrentLocation() {
-        if(currentLocation != null) moveCamera(currentLocation!!)
+        if(currentLocation.value != null) moveCamera(currentLocation.value!!)
     }
 }

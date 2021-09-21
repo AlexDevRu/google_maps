@@ -13,16 +13,16 @@ import com.example.maps.databinding.ViewholderPhotoBinding
 import com.example.maps.ui.fragments.main.MainFragmentDirections
 import com.example.maps.utils.extensions.url
 
-class PlacePhotosAdapter: ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {
+class PlacePhotosAdapter(private val p: () -> Unit): ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {
 
     inner class PlacePhotoViewHolder(private val binding: ViewholderPhotoBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(photo: Photo) {
             val apiKey = itemView.resources.getString(R.string.google_maps_key)
-            binding.photo.transitionName = photo.photoReference
 
             val photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxheight=${photo.height}&maxwidth=${photo.width}&photoreference=${photo.photoReference}&sensor=false&key=" + apiKey
 
             binding.photo.url(photoUrl)
+            binding.photo.transitionName = photoUrl
 
             binding.root.setOnClickListener {
                 val extras = FragmentNavigatorExtras(

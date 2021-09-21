@@ -10,6 +10,7 @@ import com.example.maps.ui.MapsActivity
 import com.example.maps.ui.fragments.GlobalVM
 import com.example.maps.utils.InternetUtil
 import com.google.android.material.snackbar.Snackbar
+import io.reactivex.disposables.CompositeDisposable
 
 
 typealias Inflate<T> = (LayoutInflater, ViewGroup?, Boolean) -> T
@@ -17,6 +18,8 @@ typealias Inflate<T> = (LayoutInflater, ViewGroup?, Boolean) -> T
 abstract class BaseFragment<TBinding: ViewBinding>(
     private val inflate: Inflate<TBinding>
 ): Fragment() {
+
+    protected val compositeDisposable = CompositeDisposable()
 
     protected lateinit var binding: TBinding
 
@@ -37,5 +40,10 @@ abstract class BaseFragment<TBinding: ViewBinding>(
 
     protected fun showSnackBar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.clear()
     }
 }

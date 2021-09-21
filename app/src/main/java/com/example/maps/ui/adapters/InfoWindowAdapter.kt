@@ -14,12 +14,12 @@ internal class CustomInfoWindowAdapter(private val context: Context): InfoWindow
     private val binding: LayoutInfoWindowBinding = LayoutInfoWindowBinding.inflate(LayoutInflater.from(context))
 
     override fun getInfoContents(marker: Marker): View {
-        binding.title.setHtml(marker.title.orEmpty())
+        binding.distance.setHtml(marker.title.orEmpty())
         if(!marker.snippet.isNullOrEmpty()) {
             val info = marker.snippet?.split("\n\n")
 
             if(!info.isNullOrEmpty()) {
-                binding.snippet.setHtml(info.first().trim())
+                binding.duration.setHtml(info.first().trim())
                 if(info.size > 1)
                     binding.instructions.setHtml(info[1].trim())
             }

@@ -7,7 +7,7 @@
     android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/distance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="TextView"
@@ -15,12 +15,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/snippet"
+        android:id="@+id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="TextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
+        app:layout_constraintTop_toBottomOf="@id/distance" />
 
     <TextView
         android:id="@+id/instructions"
@@ -29,6 +29,6 @@
         android:layout_marginTop="@dimen/small_indent"
         tools:text="TextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/snippet" />
+        app:layout_constraintTop_toBottomOf="@id/duration" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

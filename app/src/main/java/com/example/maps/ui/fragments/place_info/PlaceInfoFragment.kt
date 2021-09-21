@@ -15,6 +15,7 @@ import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
+import com.example.maps.utils.DataTableUtil
 import com.example.maps.utils.Utils
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
@@ -101,37 +102,26 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         }
 
         if(place.openingHours != null) {
-            val header = DataTableHeader.Builder()
-                .item("", 1)
-                .item("", 1)
-                .build()
-
-            Log.w(TAG, "${place.openingHours}")
-
-            val rows = ArrayList<DataTableRow>()
-
-            val sortedOpeningHours = place.openingHours!!.periods?.sortedBy { it.open?.day }
+            val sortedOpeningHours = place.openingHours?.periods?.sortedBy { it.open.day }
+            val rows = mutableListOf<List<String>>()
 
             for(period in sortedOpeningHours.orEmpty()) {
 
-                val openTime = period.open?.time
-                val closeTime = period.close?.time
+                val openTime = period.open.time
+                val closeTime = period.close.time
 
-                val weekDayRes = Utils.getWeekDayByNumber(period.open?.day!!)
+                val weekDayRes = Utils.getWeekDayByNumber(period.open.day!!)
 
-                val row = DataTableRow.Builder()
-                    .value(resources.getString(weekDayRes))
-                    .value("${openTime?.substring(0, 2)}:${openTime?.substring(2, 4)} - ${closeTime?.substring(0, 2)}:${closeTime?.substring(2, 4)}")
-                    .build()
-                rows.add(row)
+                rows.add(
+                    listOf(resources.getString(weekDayRes), "$openTime - $closeTime")
+                )
             }
 
-            binding.openingHoursDataTable.header = header
-            binding.openingHoursDataTable.rows = rows
-
-            binding.openingHoursDataTable.typeface = Typeface.SANS_SERIF
-
-            binding.openingHoursDataTable.inflate(requireContext());
+            DataTableUtil.createTable(
+                binding.openingHoursDataTable,
+                listOf("", ""),
+                rows
+            )
         }
     }
 }
