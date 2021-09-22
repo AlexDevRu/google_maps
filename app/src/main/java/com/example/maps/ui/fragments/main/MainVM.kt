@@ -1,14 +1,16 @@
 package com.example.maps.ui.fragments.main
 
 import android.app.Application
+import android.location.Address
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.example.data.repositories.GoogleMapsApiRepository
 import com.example.domain.common.DIRECTION_TYPE
 import com.example.domain.common.Result
 import com.example.domain.exceptions.EmptyResultException
-import com.example.domain.models.Location
 import com.example.domain.models.Markdown
 import com.example.domain.models.directions.Direction
 import com.example.domain.models.place_info.PlaceInfo
@@ -21,15 +23,13 @@ import com.example.maps.mappers.toModel
 import com.example.maps.utils.GoogleMapUtil
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import javax.inject.Inject
+import io.reactivex.subjects.BehaviorSubject
 
-@HiltViewModel
-class MainVM @Inject constructor(
+class MainVM(
     app: Application,
     private val getInfoByLocationUseCase: GetInfoByLocationUseCase,
     private val getDirectionUseCase: GetDirectionUseCase,
@@ -41,6 +41,8 @@ class MainVM @Inject constructor(
     companion object {
         private const val TAG = "MainVM"
     }
+
+    var currentAddress = BehaviorSubject.create<Address>()
 
     var directionType = DIRECTION_TYPE.DRIVING
 
@@ -65,12 +67,23 @@ class MainVM @Inject constructor(
     private var placeInfo: Single<PlaceInfo>? = null
     private var placeInfoSubscriber: Disposable? = null
 
+
+    val currentLanguage: String?
+        get() = currentAddress.value?.locale?.language
+
+
     var currentPlaceId: String? = null
         private set
 
 
-    val currentLanguage: String?
-        get() = googleMapUtil.currentAddress?.locale?.language
+    init {
+        compositeDisposable.add(
+            googleMapUtil.currentLocation.subscribe {
+                val address = googleMapUtil.getAddress(it) ?: return@subscribe
+                currentAddress.onNext(address)
+            }
+        )
+    }
 
 
     fun toggleMapMode() {
@@ -100,7 +113,7 @@ class MainVM @Inject constructor(
             })
 
 
-        val placeInMarkdown = isPlaceInMarkdownsUseCase.invoke(currentPlaceId!!)
+        val placeInMarkdown = isPlaceInMarkdownsUseCase.invoke(placeId)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 _currentPlaceFavorite.value = Result.Success(true)
@@ -123,10 +136,10 @@ class MainVM @Inject constructor(
     }
 
     fun getDirection() {
-        if(googleMapUtil.origin == null || googleMapUtil.destination == null) return
+        if(googleMapUtil.origin.value == null || googleMapUtil.destination.value == null) return
 
-        val origin = googleMapUtil.origin!!.position.toModel()
-        val destination = googleMapUtil.destination!!.position.toModel()
+        val origin = googleMapUtil.origin.value!!.position.toModel()
+        val destination = googleMapUtil.destination.value!!.position.toModel()
 
         _direction.value = Result.Loading()
         compositeDisposable.add(
@@ -158,7 +171,7 @@ class MainVM @Inject constructor(
                 getInfoByLocation(placeId)
             }
             GoogleMapUtil.MAP_MODE.DIRECTION -> {
-                if(googleMapUtil.currentDirectionMarker == GoogleMapUtil.DIRECTION_MARKER.ORIGIN)
+                if(googleMapUtil.currentDirectionMarker.value == GoogleMapUtil.DIRECTION_MARKER.ORIGIN)
                     googleMapUtil.createOriginMarker(latLng)
                 else
                     googleMapUtil.createDestinationMarker(latLng)

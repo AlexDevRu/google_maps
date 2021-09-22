@@ -2,17 +2,16 @@ package com.example.maps.ui.fragments.markdowns
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.viewModels
 import com.example.domain.common.Result
 import com.example.maps.databinding.FragmentMarkdownsBinding
 import com.example.maps.ui.adapters.MarkdownAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class MarkdownsFragment: BaseFragment<FragmentMarkdownsBinding>(FragmentMarkdownsBinding::inflate) {
 
-    private val viewModel by viewModels<MarkdownsVM>()
+    //private val viewModel by viewModels<MarkdownsVM>()
+    private val viewModel by viewModel<MarkdownsVM>()
 
     private lateinit var adapter: MarkdownAdapter
 

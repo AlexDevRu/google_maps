@@ -8,15 +8,10 @@ import com.example.domain.common.Result
 import com.example.domain.models.Markdown
 import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
 import com.example.domain.use_cases.markdowns.GetMarkdownsUseCase
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import javax.inject.Inject
 
-@HiltViewModel
-class MarkdownsVM @Inject constructor(
+class MarkdownsVM (
     private val getMarkdownsUseCase: GetMarkdownsUseCase,
     private val deleteMarkdownByIdUseCase: DeleteMarkdownByIdUseCase
 ): ViewModel() {

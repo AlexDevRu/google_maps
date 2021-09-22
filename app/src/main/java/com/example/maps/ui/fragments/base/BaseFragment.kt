@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import com.example.maps.ui.MapsActivity
-import com.example.maps.ui.fragments.GlobalVM
+import com.example.maps.ui.GlobalVM
 import com.example.maps.utils.InternetUtil
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.disposables.CompositeDisposable

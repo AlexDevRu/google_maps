@@ -1,7 +1,6 @@
 package com.example.data.repositories
 
 import android.util.Log
-import androidx.room.EmptyResultSetException
 import com.example.domain.exceptions.EmptyResultException
 import com.example.domain.models.Location
 import com.example.domain.models.Markdown
@@ -14,7 +13,6 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import io.reactivex.Completable
-import io.reactivex.Maybe
 import io.reactivex.Single
 import java.util.*
 

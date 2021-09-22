@@ -3,19 +3,19 @@ package com.example.maps.ui.fragments.place_info
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.fragment.app.activityViewModels
 import com.example.domain.common.Result
 import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.databinding.LayoutPlaceReviewsBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-@AndroidEntryPoint
+
 class PlaceReviewsFragment: BaseFragment<LayoutPlaceReviewsBinding>(LayoutPlaceReviewsBinding::inflate) {
 
-    private val mainVM: MainVM by activityViewModels()
+    //private val mainVM: MainVM by activityViewModels()
+    private val mainVM by sharedViewModel<MainVM>()
 
     private lateinit var reviewAdapter: ReviewAdapter
 

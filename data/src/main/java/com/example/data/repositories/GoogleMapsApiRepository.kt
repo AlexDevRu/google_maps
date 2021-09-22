@@ -8,12 +8,10 @@ import com.example.domain.models.place_info.PlaceInfo
 import com.example.domain.repositories.IGoogleMapApiRepository
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
-import android.util.Log
 import com.example.domain.common.DIRECTION_TYPE
 
 
-class GoogleMapsApiRepository @Inject constructor(
+class GoogleMapsApiRepository (
     private val service: GoogleMapApiService
 ): IGoogleMapApiRepository {
 

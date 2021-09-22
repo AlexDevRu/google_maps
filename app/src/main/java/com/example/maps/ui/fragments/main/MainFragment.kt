@@ -11,9 +11,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.viewpager2.widget.ViewPager2
 import com.example.domain.common.DIRECTION_TYPE
 import com.example.domain.common.Result
@@ -41,10 +39,9 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
-@AndroidEntryPoint
 class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate),
     OnMapReadyCallback {
 
@@ -52,7 +49,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         private const val TAG = "MapsActivity"
     }
 
-    private val viewModel by activityViewModels<MainVM>()
+    private val viewModel by sharedViewModel<MainVM>()
 
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
 
@@ -153,9 +150,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 )
             }
             else if(!firstInit && args.markdown == null)
-                viewModel.googleMapUtil.moveCamera(
-                    viewModel.googleMapUtil.currentCameraPosition!!
-                )
+                viewModel.googleMapUtil.moveCameraToCurrentLocation()
 
             viewModel.googleMapUtil.setDefaultSettings()
 

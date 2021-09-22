@@ -2,21 +2,20 @@ package com.example.maps.ui
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.maps.R
 import com.example.maps.databinding.ActivityMapsBinding
-import com.example.maps.ui.fragments.GlobalVM
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
+
 class MapsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMapsBinding
 
-    val globalVM by viewModels<GlobalVM>()
+    //val globalVM by viewModels<GlobalVM>()
+    val globalVM by viewModel<GlobalVM>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

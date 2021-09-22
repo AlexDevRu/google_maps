@@ -7,14 +7,10 @@ import com.example.domain.models.Markdown
 import com.example.domain.repositories.IMarkdownRepository
 import io.reactivex.Completable
 import io.reactivex.Maybe
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
-import java.io.IOException
-import java.util.*
-import javax.inject.Inject
 
-class MarkdownRepository @Inject constructor(private val markdownDao: MapsDao): IMarkdownRepository {
+class MarkdownRepository (private val markdownDao: MapsDao): IMarkdownRepository {
 
     override fun getMarkdowns(): Single<List<Markdown>> {
         return markdownDao.getMarkdowns().subscribeOn(Schedulers.io())

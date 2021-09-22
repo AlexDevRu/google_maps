@@ -15,6 +15,7 @@
         android:layout_height="34dp"
         android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
         android:layout_gravity="center"
+        android:rotation="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -133,7 +134,7 @@
                 android:layout_margin="8dp"
                 app:header_gravity="center"
                 app:row_gravity="center"
-                app:header_vertical_padding="16dp"
+                app:header_vertical_padding="12dp"
                 app:header_horizontal_padding="0dp"
                 app:row_vertical_padding="16dp"
                 app:row_text_color="#000"
@@ -145,6 +146,19 @@
                 app:shadow="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/buildDirectionButton"/>
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/stepList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/directionDataTable" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

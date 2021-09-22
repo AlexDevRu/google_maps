@@ -2,21 +2,19 @@ package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.activityViewModels
 import com.example.domain.common.Result
 import com.example.domain.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
-import com.example.maps.utils.extensions.hide
-import com.example.maps.utils.extensions.show
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-@AndroidEntryPoint
+
 class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePhotosBinding::inflate) {
 
-    private val mainVM: MainVM by activityViewModels()
+    //private val mainVM: MainVM by activityViewModels()
+    private val mainVM by sharedViewModel<MainVM>()
 
     private lateinit var photosAdapter: PlacePhotosAdapter
 

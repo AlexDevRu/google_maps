@@ -1,36 +1,30 @@
 package com.example.maps.ui.fragments.place_info
 
-import android.graphics.Typeface
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.style.UnderlineSpan
 import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.activityViewModels
 import com.example.domain.common.Result
 import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.LayoutPlaceInfoBinding
-import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
 import com.example.maps.utils.DataTableUtil
 import com.example.maps.utils.Utils
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
-import dagger.hilt.android.AndroidEntryPoint
-import ir.androidexception.datatable.model.DataTableHeader
-import ir.androidexception.datatable.model.DataTableRow
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-@AndroidEntryPoint
+
 class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBinding::inflate) {
 
     companion object {
         private const val TAG = "PlaceInfoFragment"
     }
 
-    private val mainVM: MainVM by activityViewModels()
+    //private val mainVM: MainVM by activityViewModels()
+    private val mainVM by sharedViewModel<MainVM>()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

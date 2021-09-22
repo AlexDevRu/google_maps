@@ -7,7 +7,6 @@ import android.view.View
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.maps.databinding.FragmentSignInBinding
 import com.example.maps.ui.fragments.base.BaseFragment
@@ -18,17 +17,18 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import dagger.hilt.android.AndroidEntryPoint
-import java.lang.Exception
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-@AndroidEntryPoint
+
 class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding::inflate) {
 
-    private val viewModel by viewModels<SignInVM>()
+    //private val viewModel by viewModels<SignInVM>()
 
-    @Inject
-    lateinit var client: GoogleSignInClient
+    /*@Inject
+    lateinit var client: GoogleSignInClient*/
+    private val viewModel by sharedViewModel<SignInVM>()
+    private val client by inject<GoogleSignInClient>()
 
     private lateinit var signInResultLauncher: ActivityResultLauncher<Intent>
 

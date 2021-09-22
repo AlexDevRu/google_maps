@@ -8,9 +8,8 @@ import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.utils.extensions.url
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
+
 class ProfileFragment: BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::inflate) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

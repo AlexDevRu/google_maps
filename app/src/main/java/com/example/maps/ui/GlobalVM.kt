@@ -1,4 +1,4 @@
-package com.example.maps.ui.fragments
+package com.example.maps.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -6,11 +6,8 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 
-@HiltViewModel
-class GlobalVM @Inject constructor(
+class GlobalVM (
     private val client: GoogleSignInClient
 ): ViewModel() {
 
