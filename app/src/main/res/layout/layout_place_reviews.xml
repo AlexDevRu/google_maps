@@ -28,7 +28,7 @@
         app:layout_constraintTop_toTopOf="@id/placeRating"
         tools:text="4.5" />
 
-    <com.example.maps.ui.custom.CustomRecyclerView
+    <com.example.customrecyclerview.CustomRecyclerView
         android:id="@+id/reviewsList"
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -107,6 +107,7 @@ dependencies {
     // Views
     implementation "androidx.recyclerview:recyclerview:1.2.1"
     implementation 'com.github.salehyarahmadi:DataTable:v1.0.1'
+    implementation 'com.github.Alexander-Kulakov:CustomRecyclerView:1.1.0'
 
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

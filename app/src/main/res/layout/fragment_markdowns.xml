@@ -6,14 +6,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.example.maps.ui.custom.CustomRecyclerView
+    <com.example.customrecyclerview.CustomRecyclerView
         android:id="@+id/markdownsList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:swipeEnabled="true"
         tools:itemCount="5"
         tools:listitem="@layout/view_holder_review" />
 
