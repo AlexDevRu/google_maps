@@ -24,8 +24,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|end"
-            android:layout_marginEnd="@dimen/base_indent"
-            android:background="@null"
+            android:background="@color/white"
+            android:padding="@dimen/base_indent"
             android:src="@drawable/ic_baseline_mic_24" />
 
     </FrameLayout>

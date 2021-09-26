@@ -41,4 +41,5 @@ ext {
     retrofit_version = "2.9.0"
     dagger = "2.37"
     koin_version = "3.1.2"
+    google_map_util = "5fc403457d"
 }

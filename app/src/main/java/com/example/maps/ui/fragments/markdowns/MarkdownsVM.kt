@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.domain.common.Result
 import com.example.domain.models.Markdown
 import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
 import com.example.domain.use_cases.markdowns.GetMarkdownsUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import com.example.googlemaputil_core.common.Result
 
 class MarkdownsVM (
     private val getMarkdownsUseCase: GetMarkdownsUseCase,

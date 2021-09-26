@@ -2,8 +2,8 @@ package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
 import android.view.View
-import com.example.domain.common.Result
-import com.example.domain.models.place_info.Photo
+import com.example.googlemaputil_core.common.Result
+import com.example.googlemaputil_core.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
@@ -13,7 +13,6 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePhotosBinding::inflate) {
 
-    //private val mainVM: MainVM by activityViewModels()
     private val mainVM by sharedViewModel<MainVM>()
 
     private lateinit var photosAdapter: PlacePhotosAdapter
@@ -23,27 +22,26 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
         photosAdapter = PlacePhotosAdapter({ startPostponedEnterTransition() })
         binding.placePhotosList.adapter = photosAdapter
 
-        binding.placePhotosList.retryHandler = {
-            mainVM.retry()
-        }
         binding.placePhotosList.prepareToSharedTransition(parentFragment ?: this)
 
         observe()
     }
 
     private fun observe() {
-        mainVM.placeData.observe(viewLifecycleOwner) {
-            when(it) {
-                is Result.Loading -> {
-                    binding.placePhotosList.isLoading = true
-                }
-                is Result.Success -> {
-                    binding.placePhotosList.isLoading = false
-                    val place = it.value
-                    updatePhotos(place.photos)
+        compositeDisposable.add(
+            mainVM.placeInfo.subscribe {
+                when(it) {
+                    is Result.Loading -> {
+                        binding.placePhotosList.isLoading = true
+                    }
+                    is Result.Success -> {
+                        binding.placePhotosList.isLoading = false
+                        val place = it.value
+                        updatePhotos(place.photos)
+                    }
                 }
             }
-        }
+        )
     }
 
     private fun updatePhotos(photos: List<Photo>?) {

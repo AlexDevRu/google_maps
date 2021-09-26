@@ -1,8 +1,7 @@
 package com.example.maps.ui.fragments.main
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.location.Address
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.util.Log
@@ -13,24 +12,27 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
-import com.example.domain.common.DIRECTION_TYPE
-import com.example.domain.common.Result
-import com.example.domain.models.directions.Direction
+import com.example.googlemaps.models.DirectionSegmentUI
+import com.example.googlemaps.utils.MapUtils
+import com.example.googlemaputil_core.common.DIRECTION_MARKER
+import com.example.googlemaputil_core.common.DIRECTION_TYPE
+import com.example.googlemaputil_core.common.MAP_MODE
+import com.example.googlemaputil_core.common.Result
+import com.example.googlemaputil_core.models.directions.Direction
+import com.example.googlemaputil_core.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
-import com.example.maps.mappers.toModel
+import com.example.maps.ui.adapters.CustomInfoWindowAdapter
 import com.example.maps.ui.adapters.PlaceTabsAdapter
 import com.example.maps.ui.adapters.StepAdapter
-import com.example.maps.ui.fragments.base.BaseFragment
+import com.example.maps.ui.fragments.base.GoogleMapBaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.DataTableUtil
-import com.example.maps.utils.GoogleMapUtil
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
@@ -42,11 +44,10 @@ import com.google.android.material.tabs.TabLayout
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
-class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate),
-    OnMapReadyCallback {
+class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, FragmentMainBinding::inflate) {
 
     companion object {
-        private const val TAG = "MapsActivity"
+        private const val TAG = "MainFragment"
     }
 
     private val viewModel by sharedViewModel<MainVM>()
@@ -59,7 +60,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
     private var firstInit = false
 
-    private lateinit var stepAdapter: StepAdapter
+    private var stepAdapter: StepAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -68,116 +69,75 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
         autocompleteFragment.setPlaceFields(placeFields)
-        updateMapMode()
+        //updateMapMode()
 
         firstInit = savedInstanceState == null
-
-        checkLocationPermission()
     }
 
-    private fun initMap() {
-        val mapFragment = childFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+    override fun currentAddressChanged(address: Address) {
+        viewModel.currentCountryCode = address.countryCode
+        autocompleteFragment.setCountry(address.countryCode)
     }
 
-    private fun checkLocationPermission() {
-        Log.d(TAG, "getLocationPermission: getting location permissions")
-        val permissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            if (ContextCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                initMap()
-            } else {
-                requestPermissions(permissions, Constants.LOCATION_PERMISSION_REQUEST_CODE)
-            }
-        } else {
-            requestPermissions(permissions, Constants.LOCATION_PERMISSION_REQUEST_CODE)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String?>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        Log.d(TAG, "onRequestPermissionsResult: called.")
-        when (requestCode) {
-            Constants.LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty()) {
-                    for(result in grantResults) {
-                        if (result != PackageManager.PERMISSION_GRANTED) {
-                            Log.d(TAG, "onRequestPermissionsResult: permission failed")
-                            return
-                        }
-                    }
-                    Log.d(TAG, "onRequestPermissionsResult: permission granted")
-                    initMap()
-                }
-            }
-        }
-    }
+    override fun currentLocationChanged(latLng: LatLng) {}
 
     override fun onMapReady(googleMap: GoogleMap) {
-        viewModel.googleMapUtil.initMap(googleMap)
+        super.onMapReady(googleMap)
 
-        if (viewModel.googleMapUtil.checkCoarseAndFineLocationPermissions()) {
+        if (isCoarseAndFineLocationPermissionsGranted()) {
 
             if(firstInit && args.markdown != null) {
-                viewModel.setPlace(args.markdown!!.toModel())
+                val markdownLocation = args.markdown!!.location!!
+                if(args.markdown!!.location == null) return
+                val latLng = LatLng(markdownLocation.latitude, markdownLocation.longitude)
+                setMapMode(MAP_MODE.PLACE)
+                setMarkerByPlace(args.markdown!!.placeId, latLng)
             }
 
-            if(viewModel.googleMapUtil.currentCameraPosition == null) {
-                viewModel.googleMapUtil.getDeviceLocation()
+            if(!firstInit && args.markdown == null)
+                moveToCurrentLocation()
 
-                compositeDisposable.add(
-                    viewModel.currentAddress.subscribe {
-                        autocompleteFragment.setCountry(it.countryCode)
-                    }
-                )
-            }
-            else if(!firstInit && args.markdown == null)
-                viewModel.googleMapUtil.moveCameraToCurrentLocation()
-
-            viewModel.googleMapUtil.setDefaultSettings()
+            infoWindowAdapter = CustomInfoWindowAdapter(requireContext())
 
             initViews()
         }
     }
 
+    override fun originLocationChanged(latLng: LatLng?) {
+        if(latLng != null) {
+            val address = MapUtils.getAddressByLocation(requireContext(), latLng)
+            binding.directionsChoosing.originButton.text = address?.getAddressLine(0)
+        } else {
+            binding.directionsChoosing.originButton.text = getString(R.string.choose_origin)
+        }
+        setDirectionButtonEnable()
+    }
+
+    override fun destinationLocationChanged(latLng: LatLng?) {
+        if(latLng != null) {
+            val address = MapUtils.getAddressByLocation(requireContext(), latLng)
+            binding.directionsChoosing.destinationButton.text = address?.getAddressLine(0)
+        } else {
+            binding.directionsChoosing.destinationButton.text = getString(R.string.choose_destination)
+        }
+        setDirectionButtonEnable()
+    }
+
     private fun initViews() {
-        viewModel.googleMapUtil.initTouchEvents()
         initViewPager()
         initDirectionTypes()
 
         setDirectionButtonEnable()
 
         binding.myLocationButton.setOnClickListener {
-            viewModel.googleMapUtil.moveCameraToCurrentLocation()
-        }
-
-        viewModel.googleMapUtil.mapClickHandler = {
-            viewModel.getInfoByLocation(it)
+            moveToCurrentLocation()
         }
 
        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 Log.i(TAG, "Place: " + place.name + ", " + place.id + ", " + place.latLng)
-                if(place.latLng != null) {
-                    viewModel.setPlace(place)
+                if(place.id != null && place.latLng != null) {
+                    setMarkerByPlace(place.id!!, place.latLng!!)
                 }
             }
 
@@ -191,91 +151,77 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             startActivityForResult(intent, Constants.SPEECH_RESULT_CODE)
         }
 
-
         binding.directionsButton.setOnClickListener {
-            viewModel.toggleMapMode()
+            toggleMapMode()
         }
 
-
-
         binding.directionsChoosing.originButton.setOnClickListener {
-            viewModel.googleMapUtil.currentDirectionMarker.onNext(GoogleMapUtil.DIRECTION_MARKER.ORIGIN)
+            setDirectionMarkerType(DIRECTION_MARKER.ORIGIN)
         }
 
         binding.directionsChoosing.destinationButton.setOnClickListener {
-            viewModel.googleMapUtil.currentDirectionMarker.onNext(GoogleMapUtil.DIRECTION_MARKER.DESTINATION)
+            setDirectionMarkerType(DIRECTION_MARKER.DESTINATION)
         }
-
-        compositeDisposable.add(
-            viewModel.googleMapUtil.currentDirectionMarker.subscribe {
-                updateMapMode()
-            }
-        )
 
         binding.directionsChoosing.buildDirectionButton.setOnClickListener {
-            viewModel.getDirection()
+            getDirection(viewModel.directionType)
         }
 
-        compositeDisposable.add(
-            viewModel.googleMapUtil.origin.subscribe {
-                if(it != null) {
-                    val address = viewModel.googleMapUtil.getAddress(it.position)
-                    binding.directionsChoosing.originButton.text = address?.getAddressLine(0)
-                } else {
-                    binding.directionsChoosing.originButton.text = getString(R.string.choose_origin)
-                }
-                setDirectionButtonEnable()
-            }
-        )
-
-        compositeDisposable.add(
-            viewModel.googleMapUtil.destination.subscribe {
-                if(it != null) {
-                    val address = viewModel.googleMapUtil.getAddress(it.position)
-                    binding.directionsChoosing.destinationButton.text = address?.getAddressLine(0)
-                } else {
-                    binding.directionsChoosing.originButton.text = getString(R.string.choose_destination)
-                }
-                setDirectionButtonEnable()
-            }
-        )
-
         stepAdapter = StepAdapter {
-            val polyline = viewModel.googleMapUtil.stepMap[it]
-            val marker = viewModel.googleMapUtil.directionPolylines[polyline]
-            if(marker != null) {
-                marker.showInfoWindow()
-                viewModel.googleMapUtil.moveCamera(marker.position)
+            val segment = findSegmentByStep(it)
+            segment?.let {
+                it.marker.showInfoWindow()
+                moveCamera(it.marker.position)
                 binding.motionLayout.transitionToStart()
             }
         }
         binding.directionsChoosing.stepList.adapter = stepAdapter
-
-        observe()
     }
 
-    private fun setDirectionButtonEnable() {
-        binding.directionsChoosing.buildDirectionButton.isEnabled =
-            viewModel.googleMapUtil.origin.value != null && viewModel.googleMapUtil.destination.value != null
-    }
+    override fun directionMarkerTypeChanged() {
+        Log.w(TAG, "directionMarkerTypeChanged ${getMapMode()} ${getDirectionMarkerType()}")
+        val originButton = binding.directionsChoosing.originButton as MaterialButton
+        val destinationButton = binding.directionsChoosing.destinationButton as MaterialButton
 
-    private fun updateMapMode() {
-        if(viewModel.currentMapMode.value == GoogleMapUtil.MAP_MODE.DIRECTION
-            && viewModel.googleMapUtil.currentDirectionMarker.value == GoogleMapUtil.DIRECTION_MARKER.ORIGIN) {
+        if(getMapMode() == MAP_MODE.DIRECTION
+            && getDirectionMarkerType() == DIRECTION_MARKER.ORIGIN) {
 
-                autocompleteFragment.setHint(resources.getString(R.string.choose_origin))
-                highlightDirectionButton(binding.directionsChoosing.originButton as MaterialButton, true)
-                highlightDirectionButton(binding.directionsChoosing.destinationButton as MaterialButton, false)
+            autocompleteFragment.setHint(resources.getString(R.string.choose_origin))
+            highlightDirectionButton(originButton, true)
+            highlightDirectionButton(destinationButton, false)
         }
-        else if(viewModel.currentMapMode.value == GoogleMapUtil.MAP_MODE.DIRECTION
-            && viewModel.googleMapUtil.currentDirectionMarker.value == GoogleMapUtil.DIRECTION_MARKER.DESTINATION) {
+        else if(getMapMode() == MAP_MODE.DIRECTION
+            && getDirectionMarkerType() == DIRECTION_MARKER.DESTINATION) {
 
-                autocompleteFragment.setHint(resources.getString(R.string.choose_destination))
-                highlightDirectionButton(binding.directionsChoosing.originButton as MaterialButton, false)
-                highlightDirectionButton(binding.directionsChoosing.destinationButton as MaterialButton, true)
+            autocompleteFragment.setHint(resources.getString(R.string.choose_destination))
+            highlightDirectionButton(originButton, false)
+            highlightDirectionButton(destinationButton, true)
         }
         else {
             autocompleteFragment.setHint(resources.getString(R.string.search))
+        }
+    }
+
+    private fun setDirectionButtonEnable() {
+        binding.directionsChoosing.buildDirectionButton.isEnabled = isDirectionBuildingAvailable
+    }
+
+    override fun mapModeChanged(mapMode: MAP_MODE) {
+        directionMarkerTypeChanged()
+
+        if(mapMode == MAP_MODE.PLACE) {
+            if(viewModel.currentPlaceId == null)
+                binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
+            else {
+                binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
+                binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
+            }
+
+            binding.directionsButton.setImageResource(R.drawable.ic_distance)
+        } else {
+            binding.motionLayout.setTransition(R.id.expandDirectionsTransition)
+            binding.motionLayout.transitionToState(R.id.particallyVisibleDirections)
+            binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
         }
     }
 
@@ -338,95 +284,79 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         })
     }
 
+    override fun placeInfoChanged(placeInfoResult: Result<PlaceInfo>) {
+        viewModel.placeInfo.onNext(placeInfoResult)
+        when(placeInfoResult) {
+            is Result.Loading -> {
+                binding.placeInfo.progressBar.show()
+                binding.placeInfo.iconArrowUp.hide()
+                binding.placeInfo.viewpager.hide()
+                binding.placeInfo.tabs.hide()
 
-
-    private fun observe() {
-        viewModel.placeData.observe(viewLifecycleOwner) {
-            when(it) {
-                is Result.Loading -> {
-                    binding.placeInfo.progressBar.show()
-                    binding.placeInfo.iconArrowUp.hide()
-                    binding.placeInfo.viewpager.hide()
-                    binding.placeInfo.tabs.hide()
-
-                    binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
-                    binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
-                }
-                is Result.Success -> {
-                    binding.placeInfo.progressBar.hide()
-                    binding.placeInfo.iconArrowUp.show()
-                    binding.placeInfo.viewpager.show()
-                    binding.placeInfo.tabs.show()
-                }
-                is Result.Failure -> {
-                    binding.placeInfo.progressBar.hide()
-                    Log.e(TAG, "place found exception: ${it.throwable.message}")
-                    showSnackBar(it.throwable.message.orEmpty())
-                }
+                binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
+                binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
             }
-        }
+            is Result.Success -> {
+                binding.placeInfo.progressBar.hide()
+                binding.placeInfo.iconArrowUp.show()
+                binding.placeInfo.viewpager.show()
+                binding.placeInfo.tabs.show()
 
-        viewModel.direction.observe(viewLifecycleOwner) {
-            when(it) {
-                is Result.Loading -> {
-                    binding.directionsChoosing.directionDataTable.hide()
-                    binding.directionsChoosing.stepList.hide()
-                    binding.directionsChoosing.progressBar.show()
-                }
-                is Result.Success -> {
-                    binding.directionsChoosing.directionDataTable.show()
-                    binding.directionsChoosing.stepList.show()
-                    binding.directionsChoosing.progressBar.hide()
-
-                    val direction = it.value
-                    Log.w(TAG, "direction found: ${direction}")
-
-                    updateDirectionInfo(direction)
-                }
-                is Result.Failure -> {
-                    binding.directionsChoosing.stepList.show()
-                    Log.e(TAG, "direction exception: ${it.throwable.message}")
-                    showSnackBar(it.throwable.message.orEmpty())
-                }
+                if(placeInfoResult.value.placeId != null)
+                    viewModel.findPlaceInMarkdowns(placeInfoResult.value.placeId!!)
             }
-        }
-
-        viewModel.currentMapMode.observe(viewLifecycleOwner) {
-            if(it == GoogleMapUtil.MAP_MODE.PLACE) {
-                if(viewModel.currentPlaceId == null)
-                    binding.motionLayout.transitionToState(R.id.hiddenPlaceInfo)
-                else {
-                    binding.motionLayout.setTransition(R.id.expandPlaceInfoTransition)
-                    binding.motionLayout.transitionToState(R.id.particallyVisiblePlaceInfo)
-                }
-
-                binding.directionsButton.setImageResource(R.drawable.ic_distance)
-
-                updateMapMode()
-            } else {
-                binding.motionLayout.setTransition(R.id.expandDirectionsTransition)
-                binding.motionLayout.transitionToState(R.id.particallyVisibleDirections)
-                binding.directionsButton.setImageResource(R.drawable.ic_baseline_close_24)
-                updateMapMode()
+            is Result.Failure -> {
+                binding.placeInfo.progressBar.hide()
+                Log.e(TAG, "place found exception: ${placeInfoResult.throwable.message}")
+                showSnackBar(placeInfoResult.throwable.message.orEmpty())
             }
         }
     }
 
-    private fun updateDirectionInfo(direction: Direction) {
-        val stepMap = viewModel.googleMapUtil.createDirection(direction)
+    override fun directionChanged(directionResult: Result<Direction>) {
+        when(directionResult) {
+            is Result.Loading -> {
+                binding.directionsChoosing.directionDataTable.hide()
+                binding.directionsChoosing.stepList.hide()
+                binding.directionsChoosing.progressBar.show()
+            }
+            is Result.Success -> {
+                binding.directionsChoosing.directionDataTable.show()
+                binding.directionsChoosing.stepList.show()
+                binding.directionsChoosing.progressBar.hide()
 
-        val distanceRow = listOf(resources.getString(R.string.total_distance), direction.total_distance?.text)
-        val durationRow = listOf(resources.getString(R.string.total_duration), direction.total_duration?.text)
+                val direction = directionResult.value
+                Log.w(TAG, "direction found: ${direction}")
 
-        DataTableUtil.createTable(
-            binding.directionsChoosing.directionDataTable,
-            listOf(resources.getString(R.string.name), resources.getString(R.string.value)),
-            listOf(distanceRow, durationRow)
-        )
+                val distanceRow = listOf(resources.getString(R.string.total_distance), direction.total_distance?.text)
+                val durationRow = listOf(resources.getString(R.string.total_duration), direction.total_duration?.text)
 
-        Log.w(TAG, "steps ${stepMap?.keys?.toList()}")
+                DataTableUtil.createTable(
+                    binding.directionsChoosing.directionDataTable,
+                    listOf(resources.getString(R.string.name), resources.getString(R.string.value)),
+                    listOf(distanceRow, durationRow)
+                )
+            }
+            is Result.Failure -> {
+                binding.directionsChoosing.stepList.show()
+                Log.e(TAG, "direction exception: ${directionResult.throwable.message}")
+                showSnackBar(directionResult.throwable.message.orEmpty())
+            }
+        }
+    }
 
-        stepAdapter.submitList(stepMap?.keys?.toList())
+    override fun directionRendered(directionsSegments: List<DirectionSegmentUI>) {
+        viewModel.directionsSegments = directionsSegments
+
+        directionsSegments.forEach {
+            it.marker.title = resources.getString(R.string.distance, it.step.distance.text)
+            it.marker.snippet =
+                "${resources.getString(R.string.duration, it.step.duration.text)}\n\n${it.step.html_instructions}"
+        }
+
+        val steps = directionsSegments.map { it.step }
+        Log.w(TAG, "steps ${steps}")
+        stepAdapter?.submitList(steps)
         //binding.directionsChoosing.stepList.isResultEmpty = stepMap?.keys.isNullOrEmpty()
     }
 
@@ -441,7 +371,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                         val intent = Autocomplete.IntentBuilder(
                             AutocompleteActivityMode.OVERLAY, placeFields
                         ).setInitialQuery(it)
-                            .setCountry(viewModel.currentAddress.value?.countryCode)
+                            .setCountry(viewModel.currentCountryCode)
                             .build(requireContext())
                         startActivityForResult(intent, Constants.AUTOCOMPLETE_RESULT_CODE)
                     }
@@ -453,9 +383,9 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 if (resultCode == AppCompatActivity.RESULT_OK) {
                     val place = Autocomplete.getPlaceFromIntent(data)
                     Log.i(TAG, "Place: " + place.name + ", " + place.id)
-                    viewModel.setPlace(place)
+                    if(place.id != null && place.latLng != null)
+                        setMarkerByPlace(place.id!!, place.latLng!!)
                 } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
-                    // TODO: Handle the error.
                     val status = Autocomplete.getStatusFromIntent(data)
                     Log.i(TAG, status.statusMessage.orEmpty())
                 }

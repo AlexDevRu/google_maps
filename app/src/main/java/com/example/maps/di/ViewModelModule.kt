@@ -14,7 +14,7 @@ val viewModelModule = module {
     }
 
     viewModel {
-        MainVM(androidApplication(), get(), get(), get(), get(), get())
+        MainVM(androidApplication(), get(), get(), get())
     }
 
     viewModel {

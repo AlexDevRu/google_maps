@@ -1,18 +1,9 @@
 package com.example.data.database.converters
 
 import androidx.room.TypeConverter
-import com.example.domain.models.Location
-import java.util.*
+import com.example.googlemaputil_core.models.Location
 
 class MapsConverter {
-    @TypeConverter
-    fun toUUID(uuid: String?): UUID? {
-        return UUID.fromString(uuid)
-    }
-    @TypeConverter
-    fun fromUUID(uuid: UUID?): String? {
-        return uuid?.toString()
-    }
     @TypeConverter
     fun toLocation(location: String): Location {
         return Location(

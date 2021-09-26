@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.domain.models.place_info.Review
+import com.example.googlemaputil_core.models.place_info.Review
 import com.example.maps.databinding.ViewHolderReviewBinding
 
 class ReviewAdapter: ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffUtil()) {
@@ -14,7 +14,7 @@ class ReviewAdapter: ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewD
     inner class ReviewViewHolder(private val binding: ViewHolderReviewBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(review: Review) {
             binding.username.text = review.authorName
-            binding.rating.rating = review.rating?.toFloat() ?: 0f
+            binding.rating.rating = review.rating.toFloat()
             binding.ratingText.text = review.rating.toString()
             binding.reviewText.text = review.text
             binding.relativeTime.text = review.relativeTimeDescription

@@ -7,13 +7,14 @@ import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.domain.models.place_info.Photo
+import com.example.googlemaputil_core.models.place_info.Photo
 import com.example.maps.R
 import com.example.maps.databinding.ViewholderPhotoBinding
 import com.example.maps.ui.fragments.main.MainFragmentDirections
 import com.example.maps.utils.extensions.url
 
-class PlacePhotosAdapter(private val p: () -> Unit): ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {
+class PlacePhotosAdapter(private val p: () -> Unit)
+    : ListAdapter<Photo, PlacePhotosAdapter.PlacePhotoViewHolder>(PlacePhotosDiffUtil()) {
 
     inner class PlacePhotoViewHolder(private val binding: ViewholderPhotoBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(photo: Photo) {

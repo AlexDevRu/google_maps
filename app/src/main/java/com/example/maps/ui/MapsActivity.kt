@@ -14,7 +14,6 @@ class MapsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMapsBinding
 
-    //val globalVM by viewModels<GlobalVM>()
     val globalVM by viewModel<GlobalVM>()
 
     override fun onCreate(savedInstanceState: Bundle?) {

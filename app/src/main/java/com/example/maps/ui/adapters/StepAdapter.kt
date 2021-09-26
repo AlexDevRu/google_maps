@@ -5,16 +5,18 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.domain.models.directions.Step
+import com.example.googlemaputil_core.models.directions.Step
 import com.example.maps.R
 import com.example.maps.databinding.ViewholderStepBinding
 import com.example.maps.utils.extensions.setHtml
 
-class StepAdapter(private val clickHandler: (Step) -> Unit): ListAdapter<Step, StepAdapter.StepViewHolder>(StepDiffUtil()) {
+class StepAdapter(private val clickHandler: (Step) -> Unit)
+    : ListAdapter<Step, StepAdapter.StepViewHolder>(StepDiffUtil()) {
 
-    inner class StepViewHolder(private val binding: ViewholderStepBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class StepViewHolder(private val binding: ViewholderStepBinding)
+        : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(step: Step, last: Boolean) {
-
             if(!last) {
                 binding.root.setBackgroundResource(R.drawable.step_viewholder_bg)
             }

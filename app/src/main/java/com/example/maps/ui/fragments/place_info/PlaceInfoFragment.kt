@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.example.domain.common.Result
-import com.example.domain.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.LayoutPlaceInfoBinding
 import com.example.maps.ui.fragments.base.BaseFragment
@@ -15,6 +13,8 @@ import com.example.maps.utils.Utils
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import com.example.googlemaputil_core.common.Result
+import com.example.googlemaputil_core.models.place_info.PlaceInfo
 
 
 class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBinding::inflate) {
@@ -23,9 +23,7 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
         private const val TAG = "PlaceInfoFragment"
     }
 
-    //private val mainVM: MainVM by activityViewModels()
     private val mainVM by sharedViewModel<MainVM>()
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,41 +31,42 @@ class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBin
     }
 
     private fun observe() {
-        mainVM.placeData.observe(viewLifecycleOwner) {
-            when(it) {
-                is Result.Loading -> {
-                    binding.root.visibility = View.GONE
+        compositeDisposable.addAll(
+            mainVM.placeInfo.subscribe {
+                when(it) {
+                    is Result.Loading -> {
+                        binding.root.visibility = View.GONE
+                    }
+                    is Result.Success -> {
+                        binding.root.visibility = View.VISIBLE
+
+                        val place = it.value
+                        Log.w(TAG, "place found: ${place}")
+
+                        setCurrentPlaceData(place)
+                    }
                 }
-                is Result.Success -> {
-                    binding.root.visibility = View.VISIBLE
-
-                    val place = it.value
-                    Log.w(TAG, "place found: ${place}")
-
-                    setCurrentPlaceData(place)
+            },
+            mainVM.currentPlaceFavorite.subscribe {
+                Log.e(TAG, "currentPlaceFavorite observer $it")
+                when(it) {
+                    is Result.Loading -> {
+                        binding.markdownProgressBar.show()
+                        binding.markdownButton.hide()
+                    }
+                    is Result.Success -> {
+                        val color = if(it.value) R.color.red else R.color.black
+                        binding.markdownButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
+                        binding.markdownButton.show()
+                        binding.markdownProgressBar.hide()
+                    }
+                    is Result.Failure -> {
+                        binding.markdownButton.show()
+                        binding.markdownProgressBar.hide()
+                    }
                 }
             }
-        }
-
-        mainVM.currentPlaceFavorite.observe(viewLifecycleOwner) {
-            Log.e(TAG, "currentPlaceFavorite observer $it")
-            when(it) {
-                is Result.Loading -> {
-                    binding.markdownProgressBar.show()
-                    binding.markdownButton.hide()
-                }
-                is Result.Success -> {
-                    val color = if(it.value) R.color.red else R.color.black
-                    binding.markdownButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
-                    binding.markdownButton.show()
-                    binding.markdownProgressBar.hide()
-                }
-                is Result.Failure -> {
-                    binding.markdownButton.show()
-                    binding.markdownProgressBar.hide()
-                }
-            }
-        }
+        )
 
         binding.markdownButton.setOnClickListener {
             mainVM.toggleFavoriteCurrentPlace()

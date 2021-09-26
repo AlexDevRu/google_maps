@@ -1,9 +1,7 @@
 package com.example.maps.mappers
 
-import com.example.domain.models.Location
 import com.example.domain.models.Markdown
-import com.example.domain.models.place_info.Photo
-import com.example.maps.args.LocationArg
+import com.example.googlemaputil_core.models.place_info.Photo
 import com.example.maps.args.MarkdownArg
 import com.example.maps.args.PhotoArg
 
@@ -31,19 +29,5 @@ fun MarkdownArg.toModel(): Markdown {
         name = name,
         address = address,
         location = location?.toModel()
-    )
-}
-
-fun Location.toArg(): LocationArg {
-    return LocationArg(
-        lat = lat,
-        lng = lng
-    )
-}
-
-fun LocationArg.toModel(): Location {
-    return Location(
-        lat = lat,
-        lng = lng
     )
 }
