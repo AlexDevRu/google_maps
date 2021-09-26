@@ -8,10 +8,10 @@ import com.example.domain.models.Markdown
 import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
 import com.example.domain.use_cases.markdowns.InsertMarkdownUseCase
 import com.example.domain.use_cases.markdowns.IsPlaceInMarkdownsUseCase
-import com.example.googlemaps.models.DirectionSegmentUI
-import com.example.googlemaputil_core.common.DIRECTION_TYPE
-import com.example.googlemaputil_core.common.Result
-import com.example.googlemaputil_core.models.place_info.PlaceInfo
+import com.github.core.common.DIRECTION_TYPE
+import com.github.core.models.place_info.PlaceInfo
+import com.github.core.common.Result
+import com.github.googlemapfragment.android.models.DirectionSegmentUI
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject

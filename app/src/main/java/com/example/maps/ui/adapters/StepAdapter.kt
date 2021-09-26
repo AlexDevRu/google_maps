@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.googlemaputil_core.models.directions.Step
 import com.example.maps.R
 import com.example.maps.databinding.ViewholderStepBinding
 import com.example.maps.utils.extensions.setHtml
+import com.github.core.models.directions.Step
 
 class StepAdapter(private val clickHandler: (Step) -> Unit)
     : ListAdapter<Step, StepAdapter.StepViewHolder>(StepDiffUtil()) {

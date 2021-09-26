@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.domain.exceptions.EmptyResultException
 import com.example.domain.models.Markdown
 import com.example.domain.repositories.IFirebaseRepository
-import com.example.googlemaputil_core.models.Location
+import com.github.core.models.Location
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestoreSettings

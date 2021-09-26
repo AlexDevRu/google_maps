@@ -1,9 +1,9 @@
 package com.example.maps.mappers
 
 import com.example.domain.models.Markdown
-import com.example.googlemaputil_core.models.place_info.Photo
 import com.example.maps.args.MarkdownArg
 import com.example.maps.args.PhotoArg
+import com.github.core.models.place_info.Photo
 
 fun Photo.toArg(): PhotoArg {
     return PhotoArg(

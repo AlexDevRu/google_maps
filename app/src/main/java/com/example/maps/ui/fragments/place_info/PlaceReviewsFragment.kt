@@ -3,8 +3,8 @@ package com.example.maps.ui.fragments.place_info
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import com.example.googlemaputil_core.common.Result
-import com.example.googlemaputil_core.models.place_info.PlaceInfo
+import com.github.core.common.Result
+import com.github.core.models.place_info.PlaceInfo
 import com.example.maps.databinding.LayoutPlaceReviewsBinding
 import com.example.maps.ui.adapters.ReviewAdapter
 import com.example.maps.ui.fragments.base.BaseFragment

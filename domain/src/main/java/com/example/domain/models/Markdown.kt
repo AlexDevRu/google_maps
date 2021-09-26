@@ -1,6 +1,6 @@
 package com.example.domain.models
 
-import com.example.googlemaputil_core.models.Location
+import com.github.core.models.Location
 
 data class Markdown(
     val placeId: String,

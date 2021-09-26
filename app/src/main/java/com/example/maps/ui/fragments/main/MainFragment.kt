@@ -12,14 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
-import com.example.googlemaps.models.DirectionSegmentUI
-import com.example.googlemaps.utils.MapUtils
-import com.example.googlemaputil_core.common.DIRECTION_MARKER
-import com.example.googlemaputil_core.common.DIRECTION_TYPE
-import com.example.googlemaputil_core.common.MAP_MODE
-import com.example.googlemaputil_core.common.Result
-import com.example.googlemaputil_core.models.directions.Direction
-import com.example.googlemaputil_core.models.place_info.PlaceInfo
 import com.example.maps.R
 import com.example.maps.databinding.FragmentMainBinding
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
@@ -30,6 +22,12 @@ import com.example.maps.utils.Constants
 import com.example.maps.utils.DataTableUtil
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
+import com.github.core.common.DIRECTION_MARKER
+import com.github.core.common.DIRECTION_TYPE
+import com.github.core.common.MAP_MODE
+import com.github.core.models.place_info.PlaceInfo
+import com.github.googlemapfragment.android.models.DirectionSegmentUI
+import com.github.googlemapfragment.android.utils.MapUtils
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -42,6 +40,8 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import com.github.core.common.Result
+import com.github.core.models.directions.Direction
 
 
 class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, FragmentMainBinding::inflate) {
@@ -69,7 +69,6 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
             childFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
 
         autocompleteFragment.setPlaceFields(placeFields)
-        //updateMapMode()
 
         firstInit = savedInstanceState == null
     }

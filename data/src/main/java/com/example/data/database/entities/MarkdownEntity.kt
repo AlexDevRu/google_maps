@@ -2,7 +2,7 @@ package com.example.data.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.googlemaputil_core.models.Location
+import com.github.core.models.Location
 
 @Entity(tableName = "markdowns")
 data class MarkdownEntity(

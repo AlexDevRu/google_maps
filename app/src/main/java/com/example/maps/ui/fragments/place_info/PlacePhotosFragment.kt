@@ -2,8 +2,8 @@ package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
 import android.view.View
-import com.example.googlemaputil_core.common.Result
-import com.example.googlemaputil_core.models.place_info.Photo
+import com.github.core.common.Result
+import com.github.core.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.fragments.base.BaseFragment

@@ -10,7 +10,6 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:1.3.0"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.4.0-alpha04"
-        //classpath 'com.google.dagger:hilt-android-gradle-plugin:2.28-alpha'
         classpath 'com.google.gms:google-services:4.3.10'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -37,9 +36,8 @@ task clean(type: Delete) {
 ext {
     firebaseBoom = "28.3.0"
     playServicesAuth = "19.2.0"
-    paging = "3.0.1"
     retrofit_version = "2.9.0"
-    dagger = "2.37"
+    room_version = "2.4.0-alpha04"
     koin_version = "3.1.2"
-    google_map_util = "5fc403457d"
+    google_map_fragment = "1.0.0"
 }

@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.IdRes
 import androidx.viewbinding.ViewBinding
-import com.example.googlemaps.GoogleMapsFragment
 import com.example.maps.ui.GlobalVM
 import com.example.maps.ui.MapsActivity
 import com.example.maps.utils.InternetUtil
+import com.github.googlemapfragment.android.GoogleMapsFragment
 import com.google.android.material.snackbar.Snackbar
 
 abstract class GoogleMapBaseFragment<TBinding: ViewBinding>(

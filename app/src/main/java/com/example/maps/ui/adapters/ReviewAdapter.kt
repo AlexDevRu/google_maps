@@ -6,8 +6,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.googlemaputil_core.models.place_info.Review
 import com.example.maps.databinding.ViewHolderReviewBinding
+import com.github.core.models.place_info.Review
 
 class ReviewAdapter: ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffUtil()) {
 

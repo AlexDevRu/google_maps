@@ -7,8 +7,6 @@ plugins {
 }
 
 apply plugin: 'kotlin-kapt'
-//apply plugin: 'dagger.hilt.android.plugin'
-
 apply plugin: 'com.google.gms.google-services'
 
 android {
@@ -74,12 +72,9 @@ dependencies {
     v3Implementation 'com.google.auto.value:auto-value-annotations:1.8.2'
     v3Implementation 'com.google.code.gson:gson:2.8.8'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
 
-
-    implementation "com.github.Alexander-Kulakov.GoogleMapUtil:GoogleMaps:$google_map_util"
-    implementation "com.github.Alexander-Kulakov.GoogleMapUtil:googlemaputil_core:$google_map_util"
+    implementation "com.github.Alexander-Kulakov.GoogleMapFragment:GoogleMaps:$google_map_fragment"
+    implementation "com.github.Alexander-Kulakov.GoogleMapFragment:core:$google_map_fragment"
 
     // Firebase BOM
     implementation platform("com.google.firebase:firebase-bom:$firebaseBoom")

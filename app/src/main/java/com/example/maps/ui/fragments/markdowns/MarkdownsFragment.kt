@@ -6,7 +6,7 @@ import com.example.maps.databinding.FragmentMarkdownsBinding
 import com.example.maps.ui.adapters.MarkdownAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import com.example.googlemaputil_core.common.Result
+import com.github.core.common.Result
 
 class MarkdownsFragment: BaseFragment<FragmentMarkdownsBinding>(FragmentMarkdownsBinding::inflate) {
 

@@ -23,10 +23,6 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding::inflate) {
 
-    //private val viewModel by viewModels<SignInVM>()
-
-    /*@Inject
-    lateinit var client: GoogleSignInClient*/
     private val viewModel by sharedViewModel<SignInVM>()
     private val client by inject<GoogleSignInClient>()
 

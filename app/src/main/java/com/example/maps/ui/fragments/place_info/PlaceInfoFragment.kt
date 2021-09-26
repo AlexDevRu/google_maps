@@ -13,8 +13,8 @@ import com.example.maps.utils.Utils
 import com.example.maps.utils.extensions.hide
 import com.example.maps.utils.extensions.show
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import com.example.googlemaputil_core.common.Result
-import com.example.googlemaputil_core.models.place_info.PlaceInfo
+import com.github.core.common.Result
+import com.github.core.models.place_info.PlaceInfo
 
 
 class PlaceInfoFragment: BaseFragment<LayoutPlaceInfoBinding>(LayoutPlaceInfoBinding::inflate) {

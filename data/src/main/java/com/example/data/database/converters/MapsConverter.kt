@@ -1,7 +1,7 @@
 package com.example.data.database.converters
 
 import androidx.room.TypeConverter
-import com.example.googlemaputil_core.models.Location
+import com.github.core.models.Location
 
 class MapsConverter {
     @TypeConverter
