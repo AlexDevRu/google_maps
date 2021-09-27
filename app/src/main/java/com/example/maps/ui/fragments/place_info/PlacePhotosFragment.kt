@@ -2,12 +2,12 @@ package com.example.maps.ui.fragments.place_info
 
 import android.os.Bundle
 import android.view.View
-import com.github.core.common.Result
-import com.github.core.models.place_info.Photo
 import com.example.maps.databinding.LayoutPlacePhotosBinding
 import com.example.maps.ui.adapters.PlacePhotosAdapter
 import com.example.maps.ui.fragments.base.BaseFragment
 import com.example.maps.ui.fragments.main.MainVM
+import com.github.core.common.Result
+import com.github.core.models.place_info.Photo
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
@@ -19,7 +19,8 @@ class PlacePhotosFragment: BaseFragment<LayoutPlacePhotosBinding>(LayoutPlacePho
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        photosAdapter = PlacePhotosAdapter({ startPostponedEnterTransition() })
+
+        photosAdapter = PlacePhotosAdapter { startPostponedEnterTransition() }
         binding.placePhotosList.adapter = photosAdapter
 
         binding.placePhotosList.prepareToSharedTransition(parentFragment ?: this)

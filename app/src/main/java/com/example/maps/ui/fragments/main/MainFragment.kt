@@ -25,6 +25,8 @@ import com.example.maps.utils.extensions.show
 import com.github.core.common.DIRECTION_MARKER
 import com.github.core.common.DIRECTION_TYPE
 import com.github.core.common.MAP_MODE
+import com.github.core.common.Result
+import com.github.core.models.directions.Direction
 import com.github.core.models.place_info.PlaceInfo
 import com.github.googlemapfragment.android.models.DirectionSegmentUI
 import com.github.googlemapfragment.android.utils.MapUtils
@@ -40,8 +42,6 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import com.github.core.common.Result
-import com.github.core.models.directions.Direction
 
 
 class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, FragmentMainBinding::inflate) {
@@ -84,6 +84,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         super.onMapReady(googleMap)
 
         if (isCoarseAndFineLocationPermissionsGranted()) {
+
+            myLocationSynchronizedWithOrigin = true
 
             if(firstInit && args.markdown != null) {
                 val markdownLocation = args.markdown!!.location!!
@@ -166,15 +168,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
             getDirection(viewModel.directionType)
         }
 
-        stepAdapter = StepAdapter {
-            val segment = findSegmentByStep(it)
-            segment?.let {
-                it.marker.showInfoWindow()
-                moveCamera(it.marker.position)
-                binding.motionLayout.transitionToStart()
-            }
-        }
-        binding.directionsChoosing.stepList.adapter = stepAdapter
+
     }
 
     override fun directionMarkerTypeChanged() {
@@ -312,6 +306,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         }
     }
 
+    override fun placeLocationChanged(latLng: LatLng?) {}
+
     override fun directionChanged(directionResult: Result<Direction>) {
         when(directionResult) {
             is Result.Loading -> {
@@ -345,6 +341,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
     }
 
     override fun directionRendered(directionsSegments: List<DirectionSegmentUI>) {
+        Log.e(TAG, "directionRendered directionRendered $directionsSegments")
+
         viewModel.directionsSegments = directionsSegments
 
         directionsSegments.forEach {
@@ -355,7 +353,21 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
 
         val steps = directionsSegments.map { it.step }
         Log.w(TAG, "steps ${steps}")
+
+        if(binding.directionsChoosing.stepList.adapter == null) {
+            stepAdapter = StepAdapter {
+                val segment = findSegmentByStep(it)
+                segment?.let {
+                    it.marker.showInfoWindow()
+                    moveCamera(it.marker.position)
+                    binding.motionLayout.transitionToStart()
+                }
+            }
+            binding.directionsChoosing.stepList.adapter = stepAdapter
+        }
+
         stepAdapter?.submitList(steps)
+
         //binding.directionsChoosing.stepList.isResultEmpty = stepMap?.keys.isNullOrEmpty()
     }
 
