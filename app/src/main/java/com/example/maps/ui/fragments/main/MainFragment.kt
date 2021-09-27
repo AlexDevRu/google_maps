@@ -41,6 +41,7 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
+import com.google.maps.android.ktx.utils.sphericalDistance
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
@@ -78,25 +79,41 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         autocompleteFragment.setCountry(address.countryCode)
     }
 
-    override fun currentLocationChanged(latLng: LatLng) {}
+    override fun currentLocationChanged(latLng: LatLng) {
+        if(firstInit && args.markdown == null) {
+            moveToCurrentLocation()
+            firstInit = false
+        }
+
+        if(
+            isDirectionBuildingAvailable &&
+            myLocationSynchronizedWithOrigin
+        ) {
+            if(viewModel.originLatLng != null) {
+                val distance = viewModel.originLatLng!!.sphericalDistance(latLng)
+                if(distance > MainVM.minDistanceForUpdate) {
+                    viewModel.originLatLng = latLng
+                    getDirection(viewModel.directionType)
+                }
+            } else {
+                viewModel.originLatLng = latLng
+            }
+        }
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         super.onMapReady(googleMap)
 
         if (isCoarseAndFineLocationPermissionsGranted()) {
-
-            myLocationSynchronizedWithOrigin = true
+            Log.w(TAG, "firstinit $firstInit")
 
             if(firstInit && args.markdown != null) {
-                val markdownLocation = args.markdown!!.location!!
-                if(args.markdown!!.location == null) return
+                val markdownLocation = args.markdown!!.location ?: return
                 val latLng = LatLng(markdownLocation.latitude, markdownLocation.longitude)
                 setMapMode(MAP_MODE.PLACE)
                 setMarkerByPlace(args.markdown!!.placeId, latLng)
+                moveCamera(latLng)
             }
-
-            if(!firstInit && args.markdown == null)
-                moveToCurrentLocation()
 
             infoWindowAdapter = CustomInfoWindowAdapter(requireContext())
 
@@ -128,13 +145,11 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         initViewPager()
         initDirectionTypes()
 
-        setDirectionButtonEnable()
-
         binding.myLocationButton.setOnClickListener {
             moveToCurrentLocation()
         }
 
-       autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 Log.i(TAG, "Place: " + place.name + ", " + place.id + ", " + place.latLng)
                 if(place.id != null && place.latLng != null) {
@@ -168,7 +183,15 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
             getDirection(viewModel.directionType)
         }
 
+        compositeDisposable.add(
+            viewModel.myLocationSyncWithOrigin.subscribe {
+                binding.directionsChoosing.myLocationSyncButton.isChecked = it
+            }
+        )
 
+        binding.directionsChoosing.myLocationSyncButton.setOnCheckedChangeListener { _, b ->
+            myLocationSynchronizedWithOrigin = b
+        }
     }
 
     override fun directionMarkerTypeChanged() {

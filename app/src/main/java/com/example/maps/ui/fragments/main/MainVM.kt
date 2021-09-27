@@ -9,9 +9,10 @@ import com.example.domain.use_cases.markdowns.DeleteMarkdownByIdUseCase
 import com.example.domain.use_cases.markdowns.InsertMarkdownUseCase
 import com.example.domain.use_cases.markdowns.IsPlaceInMarkdownsUseCase
 import com.github.core.common.DIRECTION_TYPE
-import com.github.core.models.place_info.PlaceInfo
 import com.github.core.common.Result
+import com.github.core.models.place_info.PlaceInfo
 import com.github.googlemapfragment.android.models.DirectionSegmentUI
+import com.google.android.gms.maps.model.LatLng
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
@@ -25,7 +26,11 @@ class MainVM(
 
     companion object {
         private const val TAG = "MainVM"
+
+        const val minDistanceForUpdate = 5
     }
+
+    var originLatLng: LatLng? = null
 
     var directionType = DIRECTION_TYPE.DRIVING
     var currentCountryCode: String? = null
@@ -40,6 +45,8 @@ class MainVM(
 
     val placeInfo = BehaviorSubject.create<Result<PlaceInfo>>()
     val currentPlaceFavorite = BehaviorSubject.create<Result<Boolean>>()
+
+    val myLocationSyncWithOrigin = BehaviorSubject.createDefault(true)
 
 
     fun findPlaceInMarkdowns(placeId: String) {

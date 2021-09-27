@@ -11,11 +11,14 @@ import com.example.maps.ui.MapsActivity
 import com.example.maps.utils.InternetUtil
 import com.github.googlemapfragment.android.GoogleMapsFragment
 import com.google.android.material.snackbar.Snackbar
+import io.reactivex.disposables.CompositeDisposable
 
 abstract class GoogleMapBaseFragment<TBinding: ViewBinding>(
     @IdRes private val mapFragmentId: Int,
     private val inflate: Inflate<TBinding>
 ): GoogleMapsFragment(mapFragmentId) {
+
+    protected val compositeDisposable = CompositeDisposable()
 
     protected lateinit var binding: TBinding
 
@@ -36,5 +39,10 @@ abstract class GoogleMapBaseFragment<TBinding: ViewBinding>(
 
     protected fun showSnackBar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.clear()
     }
 }
