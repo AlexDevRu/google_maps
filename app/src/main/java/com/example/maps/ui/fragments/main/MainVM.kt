@@ -113,6 +113,12 @@ class MainVM(
         compositeDisposable.add(subscriber)
     }
 
+    fun toggleSyncOriginWithMyLocation() {
+        myLocationSyncWithOrigin.onNext(
+            myLocationSyncWithOrigin.value != true
+        )
+    }
+
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear()

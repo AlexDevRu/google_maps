@@ -55,18 +55,17 @@
                 app:layout_constraintStart_toEndOf="@id/originIcon"
                 app:layout_constraintEnd_toStartOf="@id/myLocationSyncButton"/>
 
-            <ToggleButton
+            <ImageButton
                 android:id="@+id/myLocationSyncButton"
-                android:layout_width="46dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="@id/originButton"
                 app:layout_constraintBottom_toBottomOf="@id/originButton"
                 app:layout_constraintStart_toEndOf="@id/originButton"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:backgroundTint="@color/gray"
-                android:textOn=""
-                android:textOff=""
-                android:drawableStart="@drawable/ic_baseline_gps_fixed_24" />
+                android:background="@null"
+                android:padding="4dp"
+                android:src="@drawable/ic_baseline_gps_fixed_24" />
 
 
 

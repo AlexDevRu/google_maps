@@ -63,6 +63,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
 
     private var stepAdapter: StepAdapter? = null
 
+    private lateinit var googleMap: GoogleMap
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -185,12 +187,16 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
 
         compositeDisposable.add(
             viewModel.myLocationSyncWithOrigin.subscribe {
-                binding.directionsChoosing.myLocationSyncButton.isChecked = it
+                Log.e(TAG, "subscribe myLocationSyncWithOrigin $it")
+                myLocationSynchronizedWithOrigin = it
+                val colorRes = if(it) R.color.blue else R.color.black
+                val color = ContextCompat.getColor(requireContext(), colorRes)
+                binding.directionsChoosing.myLocationSyncButton.setColorFilter(color)
             }
         )
 
-        binding.directionsChoosing.myLocationSyncButton.setOnCheckedChangeListener { _, b ->
-            myLocationSynchronizedWithOrigin = b
+        binding.directionsChoosing.myLocationSyncButton.setOnClickListener {
+            viewModel.toggleSyncOriginWithMyLocation()
         }
     }
 
@@ -382,7 +388,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
                 val segment = findSegmentByStep(it)
                 segment?.let {
                     it.marker.showInfoWindow()
-                    moveCamera(it.marker.position)
+                    moveCamera(it.marker.position, googleMap.cameraPosition.zoom)
                     binding.motionLayout.transitionToStart()
                 }
             }
