@@ -17,6 +17,7 @@ import com.example.maps.databinding.FragmentMainBinding
 import com.example.maps.ui.adapters.CustomInfoWindowAdapter
 import com.example.maps.ui.adapters.PlaceTabsAdapter
 import com.example.maps.ui.adapters.StepAdapter
+import com.example.maps.ui.custom.WorkaroundMapFragment
 import com.example.maps.ui.fragments.base.GoogleMapBaseFragment
 import com.example.maps.utils.Constants
 import com.example.maps.utils.DataTableUtil
@@ -28,6 +29,7 @@ import com.github.core.common.MAP_MODE
 import com.github.core.common.Result
 import com.github.core.models.directions.Direction
 import com.github.core.models.place_info.PlaceInfo
+import com.github.googlemapfragment.android.listeners.*
 import com.github.googlemapfragment.android.models.DirectionSegmentUI
 import com.github.googlemapfragment.android.utils.MapUtils
 import com.google.android.gms.common.api.Status
@@ -45,7 +47,9 @@ import com.google.maps.android.ktx.utils.sphericalDistance
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
-class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, FragmentMainBinding::inflate) {
+class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, FragmentMainBinding::inflate)
+    , IMyLocationChangedListener, IDirectionListener, IMapModeChangedListener,
+    IDirectionMarkersChangedListener, IPlaceInfoStatusChangedListener {
 
     companion object {
         private const val TAG = "MainFragment"
@@ -61,7 +65,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
 
     private var firstInit = false
 
-    private var stepAdapter: StepAdapter? = null
+    private lateinit var stepAdapter: StepAdapter
 
     private lateinit var googleMap: GoogleMap
 
@@ -76,12 +80,12 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         firstInit = savedInstanceState == null
     }
 
-    override fun currentAddressChanged(address: Address) {
+    override fun onCurrentAddressChange(address: Address) {
         viewModel.currentCountryCode = address.countryCode
         autocompleteFragment.setCountry(address.countryCode)
     }
 
-    override fun currentLocationChanged(latLng: LatLng) {
+    override fun onCurrentLocationChange(latLng: LatLng) {
         if(firstInit && args.markdown == null) {
             moveToCurrentLocation()
             firstInit = false
@@ -104,7 +108,16 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
+
+        myLocationChangedListener = this
+        directionListener = this
+        placeInfoStatusChangedListener = this
+        mapModeChangedListener = this
+        directionMarkersChangedListener = this
+
         super.onMapReady(googleMap)
+
+        this.googleMap = googleMap
 
         if (isCoarseAndFineLocationPermissionsGranted()) {
             Log.w(TAG, "firstinit $firstInit")
@@ -123,7 +136,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         }
     }
 
-    override fun originLocationChanged(latLng: LatLng?) {
+    override fun onOriginLocationChange(latLng: LatLng?) {
         if(latLng != null) {
             val address = MapUtils.getAddressByLocation(requireContext(), latLng)
             binding.directionsChoosing.originButton.text = address?.getAddressLine(0)
@@ -133,7 +146,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         setDirectionButtonEnable()
     }
 
-    override fun destinationLocationChanged(latLng: LatLng?) {
+    override fun onDestinationLocationChange(latLng: LatLng?) {
         if(latLng != null) {
             val address = MapUtils.getAddressByLocation(requireContext(), latLng)
             binding.directionsChoosing.destinationButton.text = address?.getAddressLine(0)
@@ -200,8 +213,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         }
     }
 
-    override fun directionMarkerTypeChanged() {
-        Log.w(TAG, "directionMarkerTypeChanged ${getMapMode()} ${getDirectionMarkerType()}")
+    override fun onDirectionMarkerTypeChange(directionMarker: DIRECTION_MARKER) {
+        Log.w(TAG, "directionMarkerTypeChanged ${getMapMode()} ${directionMarker}")
         val originButton = binding.directionsChoosing.originButton as MaterialButton
         val destinationButton = binding.directionsChoosing.destinationButton as MaterialButton
 
@@ -228,8 +241,8 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         binding.directionsChoosing.buildDirectionButton.isEnabled = isDirectionBuildingAvailable
     }
 
-    override fun mapModeChanged(mapMode: MAP_MODE) {
-        directionMarkerTypeChanged()
+    override fun onMapModeChange(mapMode: MAP_MODE) {
+        onDirectionMarkerTypeChange(getDirectionMarkerType())
 
         if(mapMode == MAP_MODE.PLACE) {
             if(viewModel.currentPlaceId == null)
@@ -306,7 +319,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         })
     }
 
-    override fun placeInfoChanged(placeInfoResult: Result<PlaceInfo>) {
+    override fun onPlaceInfoStatusChange(placeInfoResult: Result<PlaceInfo>) {
         viewModel.placeInfo.onNext(placeInfoResult)
         when(placeInfoResult) {
             is Result.Loading -> {
@@ -335,9 +348,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         }
     }
 
-    override fun placeLocationChanged(latLng: LatLng?) {}
-
-    override fun directionChanged(directionResult: Result<Direction>) {
+    override fun onDirectionChange(directionResult: Result<Direction>) {
         when(directionResult) {
             is Result.Loading -> {
                 binding.directionsChoosing.directionDataTable.hide()
@@ -352,13 +363,10 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
                 val direction = directionResult.value
                 Log.w(TAG, "direction found: ${direction}")
 
-                val distanceRow = listOf(resources.getString(R.string.total_distance), direction.total_distance?.text)
-                val durationRow = listOf(resources.getString(R.string.total_duration), direction.total_duration?.text)
-
                 DataTableUtil.createTable(
                     binding.directionsChoosing.directionDataTable,
-                    listOf(resources.getString(R.string.name), resources.getString(R.string.value)),
-                    listOf(distanceRow, durationRow)
+                    listOf(resources.getString(R.string.total_distance), resources.getString(R.string.total_duration)),
+                    listOf(listOf(direction.total_distance?.text.orEmpty(), direction.total_duration?.text.orEmpty()))
                 )
             }
             is Result.Failure -> {
@@ -369,7 +377,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         }
     }
 
-    override fun directionRendered(directionsSegments: List<DirectionSegmentUI>) {
+    override fun onDirectionRender(directionsSegments: List<DirectionSegmentUI>) {
         Log.e(TAG, "directionRendered directionRendered $directionsSegments")
 
         viewModel.directionsSegments = directionsSegments
@@ -383,19 +391,7 @@ class MainFragment: GoogleMapBaseFragment<FragmentMainBinding>(R.id.map, Fragmen
         val steps = directionsSegments.map { it.step }
         Log.w(TAG, "steps ${steps}")
 
-        if(binding.directionsChoosing.stepList.adapter == null) {
-            stepAdapter = StepAdapter {
-                val segment = findSegmentByStep(it)
-                segment?.let {
-                    it.marker.showInfoWindow()
-                    moveCamera(it.marker.position, googleMap.cameraPosition.zoom)
-                    binding.motionLayout.transitionToStart()
-                }
-            }
-            binding.directionsChoosing.stepList.adapter = stepAdapter
-        }
-
-        stepAdapter?.submitList(steps)
+        stepAdapter.submitList(steps)
 
         //binding.directionsChoosing.stepList.isResultEmpty = stepMap?.keys.isNullOrEmpty()
     }
