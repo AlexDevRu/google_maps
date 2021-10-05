@@ -18,7 +18,7 @@ open class SavingMotionLayout @JvmOverloads constructor(
         (state as? SaveState)?.let {
             super.onRestoreInstanceState(it.superParcel)
             setTransition(it.startState, it.endState)
-            progress = it.progress
+            post { progress = it.progress }
         }
     }
 
